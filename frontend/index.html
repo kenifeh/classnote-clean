@@ -4067,6 +4067,7 @@
 
       // Mode Toggle Functions
       function toggleInputMode(mode) {
+        console.log('🔄 Toggling input mode to:', mode);
         inputMode = mode;
         
         // Update toggle buttons
@@ -4078,7 +4079,11 @@
         const micBtn = document.getElementById('micBtn');
         const inputWrapper = document.querySelector('.input-wrapper');
         
+        console.log('🎤 Mic button element:', micBtn);
+        console.log('💬 Chat input element:', chatInput);
+        
         if (mode === 'voice') {
+          console.log('🎤 Switching to voice mode');
           // Hide text input, show mic button
           chatInput.style.display = 'none';
           micBtn.style.display = 'flex';
@@ -4098,13 +4103,16 @@
           
           // Update placeholder for voice mode
           chatInput.placeholder = 'Voice input active - Click mic to record';
+          console.log('✅ Voice mode activated');
         } else {
+          console.log('💬 Switching to text mode');
           // Show text input, hide mic button
           chatInput.style.display = 'block';
           micBtn.style.display = 'none';
           
           // Reset placeholder for text mode
           chatInput.placeholder = 'Ask a question or share your thoughts...';
+          console.log('✅ Text mode activated');
         }
       }
 
@@ -4131,6 +4139,14 @@
       }
 
       function startVoiceRecording() {
+        console.log('🎤 Starting voice recording...');
+        
+        // Check if user is logged in
+        if (!authToken) {
+          showError('Please log in to use voice input');
+          return;
+        }
+        
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           showError('Voice recording is not supported in your browser');
           return;
@@ -4138,16 +4154,20 @@
 
         navigator.mediaDevices.getUserMedia({ audio: true })
           .then(stream => {
+            console.log('✅ Microphone access granted');
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
             recordingStartTime = Date.now();
 
             mediaRecorder.ondataavailable = (event) => {
+              console.log('📦 Audio chunk received:', event.data.size, 'bytes');
               audioChunks.push(event.data);
             };
 
             mediaRecorder.onstop = () => {
+              console.log('🛑 Recording stopped, processing audio...');
               const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+              console.log('🎵 Audio blob created:', audioBlob.size, 'bytes');
               processVoiceInput(audioBlob);
             };
 
@@ -4162,7 +4182,7 @@
             showSuccess('Recording started... Tap the button to stop and send');
           })
           .catch(error => {
-            console.error('Error accessing microphone:', error);
+            console.error('❌ Error accessing microphone:', error);
             showError('Unable to access microphone. Please check permissions.');
           });
       }
@@ -4181,11 +4201,13 @@
       }
 
       async function processVoiceInput(audioBlob) {
+        console.log('🔄 Processing voice input...');
         const formData = new FormData();
         formData.append('audio', audioBlob, 'voice-input.wav');
+        console.log('📤 Sending audio to backend:', audioBlob.size, 'bytes');
 
         try {
-          const response = await fetch(`${API_BASE}/transcribe`, {
+          const response = await fetch(`${API_BASE}/thinkspace/voice-input`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${authToken}`
@@ -4193,19 +4215,23 @@
             body: formData
           });
 
+          console.log('📥 Backend response status:', response.status);
           const data = await response.json();
+          console.log('📄 Backend response data:', data);
 
           if (response.ok && data.transcription) {
+            console.log('✅ Transcription successful:', data.transcription);
             // Add transcribed message to chat
             addMessageToChat('user', data.transcription);
             
             // Send to ThinkSpace
             await sendThinkSpaceMessage(data.transcription);
           } else {
+            console.error('❌ Transcription failed:', data.error || 'Unknown error');
             showError('Failed to transcribe voice input');
           }
         } catch (error) {
-          console.error('Voice processing error:', error);
+          console.error('❌ Voice processing error:', error);
           showError('Failed to process voice input');
         }
       }
