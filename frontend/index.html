@@ -2649,11 +2649,11 @@
               <div class="chat-input-container">
                 <div class="input-wrapper">
                   <input type="text" id="chatInput" class="chat-input" placeholder="Ask a question or share your thoughts..." onkeypress="handleChatKeyPress(event)">
-                  <button id="micBtn" class="mic-btn" onclick="toggleVoiceRecording()" style="display: none;">
+                  <button type="button" id="micBtn" class="mic-btn" onclick="toggleVoiceRecording(event)" style="display: none;">
                     <span class="mic-icon">🎤</span>
                   </button>
                 </div>
-                <button id="sendBtn" class="send-btn" onclick="sendMessage()">Send</button>
+                <button type="button" id="sendBtn" class="send-btn" onclick="sendMessage(event)">Send</button>
               </div>
             </div>
           </div>
@@ -4032,11 +4032,16 @@
       // Chat Functions
       function handleChatKeyPress(event) {
         if (event.key === 'Enter') {
-          sendMessage();
+          sendMessage(event);
         }
       }
 
-      async function sendMessage() {
+      async function sendMessage(event) {
+        // Prevent any form submission
+        if (event) {
+          event.preventDefault();
+        }
+        
         const chatInput = document.getElementById('chatInput');
         const message = chatInput.value.trim();
         
@@ -4130,7 +4135,12 @@
       }
 
       // Voice Recording Functions
-      function toggleVoiceRecording() {
+      function toggleVoiceRecording(event) {
+        // Prevent any form submission
+        if (event) {
+          event.preventDefault();
+        }
+        
         if (isRecording) {
           stopVoiceRecording();
         } else {
