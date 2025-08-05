@@ -2565,7 +2565,7 @@
                 <div class="transcript-header">
                   <div class="transcript-title">
                     <span class="transcript-icon">📄</span>
-                    <span class="transcript-label">Transcript:</span>
+                    <span class="transcript-label">Your recording:</span>
                     <span class="transcript-filename" id="transcriptFilename"></span>
                   </div>
                   <div class="transcript-meta">
@@ -2582,31 +2582,31 @@
                   <div class="transcript-content" id="transcriptContent" onclick="toggleTranscriptDisplay()">
                     <!-- Transcript text will be populated here -->
                   </div>
-                  <div class="transcript-expand-hint">Click to expand/collapse transcript</div>
+                  <div class="transcript-expand-hint">Click to expand/collapse</div>
                 </div>
                 
                 <!-- Summary Section -->
                 <div id="summarySection" class="summary-section" style="display: none;">
                   <div class="summary-header">
                     <span class="summary-icon">📝</span>
-                    <span class="summary-label">Summary:</span>
+                    <span class="summary-label">Here's a short summary of what your recording is about:</span>
                   </div>
                   <div class="summary-content-wrapper">
                     <div class="summary-content" id="summaryContent" onclick="toggleSummaryDisplay()">
                       <!-- Summary text will be populated here -->
                     </div>
-                    <div class="summary-expand-hint">Click to expand/collapse summary</div>
+                    <div class="summary-expand-hint">Click to expand/collapse</div>
                   </div>
                 </div>
                 
                 <div class="transcript-actions">
                   <button class="transcript-btn" id="summarizeBtn" onclick="summarizeTranscript()">
                     <span class="btn-icon">📝</span>
-                    <span class="btn-text">Summarize this Transcript</span>
+                    <span class="btn-text">Summarize this recording</span>
                   </button>
                   <button class="transcript-btn primary" id="startDialogueBtn" onclick="startTranscriptDialogue()">
                     <span class="btn-icon">🧠</span>
-                    <span class="btn-text">Start ThinkSpace Dialogue</span>
+                    <span class="btn-text">Start conversation</span>
                   </button>
                 </div>
               </div>
@@ -2623,11 +2623,11 @@
                 </button>
                 <button class="session-btn" onclick="pinSessionSummary()">
                   <span class="session-icon">📌</span>
-                  <span class="session-text">Pin Session Summary</span>
+                  <span class="session-text">Save this chat</span>
                 </button>
                 <button class="session-btn" onclick="endSession()">
                   <span class="session-icon">🔚</span>
-                  <span class="session-text">End Socrates Session</span>
+                  <span class="session-text">End conversation</span>
                 </button>
               </div>
 
@@ -2635,7 +2635,7 @@
               <div id="voiceThinking" class="voice-thinking" style="display: none;">
                 <div class="thinking-content">
                   <span class="thinking-icon">🧠</span>
-                  <span class="thinking-text">Socrates is thinking...</span>
+                  <span class="thinking-text">Thinking...</span>
                   <div class="thinking-dots">
                     <span class="dot"></span>
                     <span class="dot"></span>
@@ -3806,15 +3806,17 @@
         chatMessages.innerHTML = '';
         
         const welcomeMessage = `
-          <strong>🧠 Socrates:</strong> Welcome to ThinkSpace! I'm your philosophical guide. I'm here to help you explore ideas through thoughtful questioning.
+          <strong>🧠 Let's Think Together!</strong>
           <br><br>
-          You can either:
-          <br>
-          • Ask me philosophical questions for general inquiry
-          <br>
-          • Go to the Archive and select a note to discuss specific content
+          Hi! I'm here to help you explore your ideas. I'll ask you questions to help you figure out what you really think.
           <br><br>
-          <em>What would you like to explore today?</em>
+          You can:
+          <br>
+          • Ask me questions about anything you're thinking about
+          <br>
+          • Go to the Archive and pick something to talk about
+          <br><br>
+          <em>What's on your mind today?</em>
         `;
         
         addMessageToChat('system', welcomeMessage);
@@ -3887,13 +3889,13 @@
         const chatMessages = document.getElementById('chatMessages');
         chatMessages.innerHTML = '';
         
-        // Add Socrates's Socratic welcome message for contextual mode
+        // Add a warm, simple welcome message for contextual mode
         const welcomeMessage = `
-          <strong>🧠 Socrates:</strong> 📄 I've received your transcript <em>'${note.title}'</em>. What would you like to examine together from this text?
+          <strong>🧠 You've added a transcript!</strong>
           <br><br>
-          I'm here to guide you through Socratic inquiry - not to give you answers, but to help you discover them through thoughtful questioning.
+          I can see your recording called <em>'${note.title}'</em>. Let's explore your ideas based on this material.
           <br><br>
-          <em>What aspect of this material would you like to explore first?</em>
+          <em>What stood out to you most from what you shared?</em>
         `;
         
         addMessageToChat('system', welcomeMessage);
@@ -3938,13 +3940,13 @@
       function summarizeTranscript() {
         // This function would generate a summary of the current transcript
         // For now, we'll show a placeholder message
-        showSuccess('Summary generation feature coming soon!');
+        showSuccess('Summary feature coming soon!');
       }
 
       function startTranscriptDialogue() {
         // This function would start a focused dialogue on the transcript
         // For now, we'll add a message to the chat
-        addMessageToChat('system', '🧠 Socrates: Great! I\'m ready to explore this transcript with you. What aspect would you like to discuss first?');
+        addMessageToChat('system', '🧠 Great! I\'m ready to explore this with you. What would you like to talk about first?');
       }
 
       async function deleteArchiveItem(noteId) {
@@ -4283,28 +4285,28 @@
             
             transcriptContext = contextText;
             
-            // Add Socratic instructions for contextual mode
+            // Add simple instructions for contextual mode
             socraticInstructions = `
-              IMPORTANT: You are Socrates, a Socratic teacher. You must:
+              IMPORTANT: You are a friendly guide helping a high school student think through their ideas. You must:
               1. NEVER give direct answers - only ask thoughtful questions
-              2. Use Socratic strategies: elenchus (refutation), aporia (confusion), maieutics (midwifery), dialectical (analogies), synthesis (integration)
-              3. Current strategy: ${currentStrategy}
-              4. Question tier: ${questionTier}
-              5. Restrict all questions to the uploaded transcript content
-              6. Be calm, curious, and never dogmatic
-              7. Help the user discover contradictions and deeper understanding through questioning
+              2. Use simple, everyday language that teenagers can understand
+              3. Current approach: ${currentStrategy}
+              4. Question level: ${questionTier}
+              5. Keep all questions about the uploaded transcript content
+              6. Be warm, curious, and supportive
+              7. Help the student figure out what they really think through simple questions
             `;
           } else {
             // General inquiry mode
             socraticInstructions = `
-              IMPORTANT: You are Socrates, a Socratic teacher. You must:
+              IMPORTANT: You are a friendly guide helping a high school student think through their ideas. You must:
               1. NEVER give direct answers - only ask thoughtful questions
-              2. Use Socratic strategies: elenchus (refutation), aporia (confusion), maieutics (midwifery), dialectical (analogies), synthesis (integration)
-              3. Current strategy: ${currentStrategy}
-              4. Question tier: ${questionTier}
-              5. Engage in open philosophical inquiry
-              6. Be calm, curious, and never dogmatic
-              7. Help the user discover contradictions and deeper understanding through questioning
+              2. Use simple, everyday language that teenagers can understand
+              3. Current approach: ${currentStrategy}
+              4. Question level: ${questionTier}
+              5. Talk about anything the student wants to explore
+              6. Be warm, curious, and supportive
+              7. Help the student figure out what they really think through simple questions
             `;
           }
 
@@ -4343,12 +4345,12 @@
             showSessionActions();
           } else {
             hideVoiceThinking();
-            addMessageToChat('system', 'I apologize, but I\'m having trouble processing your request right now. Please try again.');
+            addMessageToChat('system', 'Sorry, I\'m having trouble right now. Can you try again?');
           }
         } catch (error) {
           console.error('ThinkSpace error:', error);
           hideVoiceThinking();
-          addMessageToChat('system', 'I apologize, but I\'m having trouble connecting right now. Please check your connection and try again.');
+          addMessageToChat('system', 'Sorry, I\'m having trouble connecting right now. Can you check your connection and try again?');
         }
       }
 
@@ -4395,7 +4397,7 @@
         sessions.push(sessionData);
         localStorage.setItem('thinkspace_sessions', JSON.stringify(sessions));
 
-        showSuccess('Session saved to archive!');
+        showSuccess('Chat saved to archive!');
       }
 
       function pinSessionSummary() {
@@ -4416,7 +4418,7 @@
         summaries.push(summary);
         localStorage.setItem('pinned_summaries', JSON.stringify(summaries));
 
-        showSuccess('Session summary pinned!');
+        showSuccess('Chat saved!');
       }
 
       function replayLastResponse() {
@@ -4428,7 +4430,7 @@
 
       function endSession() {
         if (sessionHistory.length === 0) {
-          showError('No session to end. Start a conversation first.');
+          showError('No conversation to end. Start chatting first.');
           return;
         }
 
@@ -4931,4 +4933,5 @@
       }
     </script>
   </body>
+</html> 
 </html> 
