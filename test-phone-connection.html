@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phone Connection Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .test { 
+            margin: 15px 0; 
+            padding: 15px; 
+            border: 2px solid rgba(255,255,255,0.3); 
+            border-radius: 10px;
+        }
+        .success { 
+            background: rgba(76, 175, 80, 0.3); 
+            border-color: #4CAF50; 
+        }
+        .error { 
+            background: rgba(244, 67, 54, 0.3); 
+            border-color: #F44336; 
+        }
+        button { 
+            padding: 12px 24px; 
+            margin: 8px; 
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .status {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .details {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 ClassNote AI Connection Test</h1>
+        <p>This page tests if your phone can reach the ClassNote AI backend server.</p>
+        
+        <div class="test">
+            <h3>🔗 Backend Connection Test</h3>
+            <p>Click the button below to test the connection:</p>
+            <button onclick="testBackend()">Test Backend Connection</button>
+            <div id="backend-result"></div>
+        </div>
+
+        <div class="test">
+            <h3>📋 Manual Test</h3>
+            <p>Or try opening this URL directly in your browser:</p>
+            <a href="http://192.168.1.154:3001" target="_blank" style="color: #FFD700; font-weight: bold;">http://192.168.1.154:3001</a>
+        </div>
+
+        <div class="test">
+            <h3>🔧 Troubleshooting</h3>
+            <p>If the test fails, try these steps:</p>
+            <ol>
+                <li>Make sure your phone and computer are on the same WiFi network</li>
+                <li>Check if Windows Firewall is blocking the connection</li>
+                <li>Try disabling Windows Firewall temporarily</li>
+                <li>Restart the backend server on your computer</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        async function testBackend() {
+            const resultDiv = document.getElementById('backend-result');
+            resultDiv.innerHTML = '<div class="status">🔄 Testing connection...</div>';
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch('http://192.168.1.154:3001', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <div class="status">✅ SUCCESS! Backend is accessible</div>
+                        <div class="details">
+                            Status: ${response.status}<br>
+                            Response Time: ${responseTime}ms<br>
+                            Message: ${data.message}<br>
+                            API Key: ${data.hasApiKey ? '✅ Available' : '❌ Missing'}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <div class="status">❌ FAILED! Cannot reach backend</div>
+                        <div class="details">
+                            Error: ${error.message}<br><br>
+                            This usually means:<br>
+                            • Windows Firewall is blocking the connection<br>
+                            • Phone and computer are on different networks<br>
+                            • Backend server is not running
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 

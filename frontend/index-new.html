@@ -1,0 +1,1124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <!-- Mobile-specific meta tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ClassNote AI" />
+    <meta name="application-name" content="ClassNote AI" />
+    <meta name="theme-color" content="#2c2c2c" />
+    <meta name="msapplication-TileColor" content="#2c2c2c" />
+    
+    <!-- iOS specific -->
+    <link rel="apple-touch-icon" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/vite.svg" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <title>ClassNote AI</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        background-color: #ffffff;
+        color: #2c2c2c;
+        line-height: 1.6;
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .app-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        min-height: 100vh;
+      }
+
+      /* Auth Forms */
+      .auth-container {
+        max-width: 400px;
+        margin: 100px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      }
+
+      .auth-form {
+        display: none;
+      }
+
+      .auth-form.active {
+        display: block;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #2c2c2c;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.2s ease;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+
+      .btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        width: 100%;
+      }
+
+      .btn:hover {
+        background: #0056b3;
+      }
+
+      .btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      .auth-toggle {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .auth-toggle a {
+        color: #007bff;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      /* Main App */
+      .main-app {
+        display: none;
+      }
+
+      .main-app.active {
+        display: block;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c2c2c;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .user-name {
+        font-weight: 500;
+        color: #2c2c2c;
+      }
+
+      .logout-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      /* Navigation */
+      .nav-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .nav-tab {
+        padding: 12px 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        color: #6b6b6b;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+      }
+
+      .nav-tab.active {
+        color: #007bff;
+        border-bottom-color: #007bff;
+      }
+
+      /* Tab Content */
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Upload Section */
+      .upload-section {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 40px;
+        margin-bottom: 30px;
+      }
+
+      .upload-title {
+        font-size: 1.2rem;
+        color: #2c2c2c;
+        margin-bottom: 12px;
+        font-weight: 500;
+      }
+
+      .upload-subtext {
+        font-size: 0.95rem;
+        color: #6b6b6b;
+        margin-bottom: 24px;
+      }
+
+      .file-input {
+        display: none;
+      }
+
+      .upload-button {
+        background: #2c2c2c;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .upload-button:hover {
+        background: #1a1a1a;
+      }
+
+      .file-info {
+        margin-top: 20px;
+        padding: 16px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        text-align: left;
+        display: none;
+      }
+
+      .file-info.show {
+        display: block;
+      }
+
+      .file-info h4 {
+        font-size: 0.9rem;
+        color: #2c2c2c;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+
+      .file-meta {
+        font-size: 0.8rem;
+        color: #6b6b6b;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .transcribe-button {
+        background: #2c2c2c;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        width: 100%;
+      }
+
+      .transcribe-button:hover {
+        background: #1a1a1a;
+      }
+
+      .transcribe-button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      /* Notes List */
+      .notes-list {
+        display: grid;
+        gap: 20px;
+      }
+
+      .note-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        transition: box-shadow 0.2s ease;
+      }
+
+      .note-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+
+      .note-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+      }
+
+      .note-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c2c2c;
+        margin-bottom: 5px;
+      }
+
+      .note-meta {
+        font-size: 0.85rem;
+        color: #6b6b6b;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .note-category {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .note-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .note-btn {
+        background: none;
+        border: 1px solid #e5e7eb;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+      }
+
+      .note-btn:hover {
+        background: #f8f9fa;
+      }
+
+      .note-btn.delete {
+        color: #dc3545;
+        border-color: #dc3545;
+      }
+
+      .note-btn.delete:hover {
+        background: #dc3545;
+        color: white;
+      }
+
+      .note-preview {
+        font-size: 0.9rem;
+        color: #6b6b6b;
+        line-height: 1.5;
+        margin-bottom: 15px;
+        max-height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+      }
+
+      /* Search */
+      .search-section {
+        margin-bottom: 30px;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+        margin-bottom: 15px;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+
+      /* Loading and Error States */
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #6b6b6b;
+      }
+
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border: 1px solid #f5c6cb;
+      }
+
+      .success {
+        background: #d4edda;
+        color: #155724;
+        padding: 12px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border: 1px solid #c3e6cb;
+      }
+
+      /* Storage Progress Bar */
+      .storage-progress {
+        width: 100%;
+        height: 10px;
+        background-color: #e0e0e0;
+        border-radius: 5px;
+        overflow: hidden;
+      }
+
+      .storage-progress .danger {
+        background-color: #dc3545;
+      }
+
+      .storage-progress .warning {
+        background-color: #ffc107;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .app-container {
+          padding: 20px 15px;
+        }
+        
+        .header {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+        }
+        
+        .nav-tabs {
+          flex-wrap: wrap;
+        }
+        
+        .note-header {
+          flex-direction: column;
+          gap: 10px;
+        }
+        
+        .note-actions {
+          align-self: flex-end;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Authentication Forms -->
+      <div id="authContainer" class="auth-container">
+        <!-- Login Form -->
+        <div id="loginForm" class="auth-form active">
+          <h2 style="text-align: center; margin-bottom: 30px;">Welcome to ClassNote AI</h2>
+          <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label for="loginUsername">Username</label>
+              <input type="text" id="loginUsername" required>
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" required>
+            </div>
+            <button type="submit" class="btn">Login</button>
+          </form>
+          <div class="auth-toggle">
+            <a onclick="showRegister()">Don't have an account? Register</a>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" class="auth-form">
+          <h2 style="text-align: center; margin-bottom: 30px;">Create Account</h2>
+          <form onsubmit="handleRegister(event)">
+            <div class="form-group">
+              <label for="registerUsername">Username</label>
+              <input type="text" id="registerUsername" required>
+            </div>
+            <div class="form-group">
+              <label for="registerEmail">Email</label>
+              <input type="email" id="registerEmail" required>
+            </div>
+            <div class="form-group">
+              <label for="registerPassword">Password</label>
+              <input type="password" id="registerPassword" required minlength="6">
+            </div>
+            <button type="submit" class="btn">Register</button>
+          </form>
+          <div class="auth-toggle">
+            <a onclick="showLogin()">Already have an account? Login</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Application -->
+      <div id="mainApp" class="main-app">
+        <!-- Header -->
+        <div class="header">
+          <h1>ClassNote AI</h1>
+          <div class="user-info">
+            <span class="user-name" id="userName"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-tabs">
+          <button class="nav-tab active" onclick="showTab('upload')">Upload Audio</button>
+          <button class="nav-tab" onclick="showTab('notes')">My Notes</button>
+          <button class="nav-tab" onclick="showTab('search')">Search</button>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="uploadTab" class="tab-content active">
+          <div class="upload-section">
+            <h3 class="upload-title">Upload Audio File</h3>
+            <p class="upload-subtext">Upload an audio file to transcribe and summarize</p>
+            
+            <input type="file" id="audioFile" class="file-input" accept="audio/*">
+            <button class="upload-button" onclick="document.getElementById('audioFile').click()">
+              Choose File
+            </button>
+            
+            <div id="fileInfo" class="file-info">
+              <h4 id="fileName"></h4>
+              <div class="file-meta">
+                <span id="fileSize"></span>
+                <span id="fileType"></span>
+              </div>
+              <button id="transcribeBtn" class="transcribe-button" onclick="transcribeAudio()">
+                Process Audio
+              </button>
+            </div>
+          </div>
+
+          <!-- Results Sections -->
+          <div id="transcriptionSection" class="transcription-section" style="display: none;">
+            <div class="section-header">
+              <div class="section-title">Transcription</div>
+              <div class="section-subtitle">AI-generated text from your audio</div>
+            </div>
+            <div class="transcription-content">
+              <div id="transcriptionText" class="transcription-text"></div>
+            </div>
+          </div>
+
+          <div id="summarySection" class="summary-section" style="display: none;">
+            <div class="section-header">
+              <div class="section-title">Summary</div>
+              <div class="section-subtitle">Key points and insights</div>
+            </div>
+            <div class="transcription-content">
+              <div id="summaryText" class="transcription-text"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes Tab -->
+        <div id="notesTab" class="tab-content">
+          <div id="notesList" class="notes-list">
+            <!-- Notes will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Search Tab -->
+        <div id="searchTab" class="tab-content">
+          <div class="search-section">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search your notes..." oninput="searchNotes()">
+          </div>
+          <div id="searchResults" class="notes-list">
+            <!-- Search results will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Storage Info -->
+        <div class="storage-info" id="storageInfo">
+          <span class="storage-text">Storage: <span id="storageUsed">0 MB</span> / <span id="storageLimit">250 MB</span></span>
+          <div class="storage-bar">
+            <div class="storage-progress" id="storageProgress"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Global variables
+      let currentUser = null;
+      let authToken = null;
+      let currentFile = null;
+      let transcriptionData = null;
+      let summaryData = null;
+      let currentNoteId = null;
+
+      // API Base URL
+      const API_BASE = 'http://localhost:3001';
+
+      // Check authentication on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        checkAuth();
+      });
+
+      // Authentication functions
+      function checkAuth() {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          authToken = token;
+          // Verify token is still valid
+          fetch(`${API_BASE}/auth/profile`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error('Invalid token');
+            }
+          })
+          .then(data => {
+            currentUser = data.user;
+            showMainApp();
+          })
+          .catch(error => {
+            console.error('Auth check failed:', error);
+            logout();
+          });
+        } else {
+          showAuth();
+        }
+      }
+
+      function showAuth() {
+        document.getElementById('authContainer').style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+      }
+
+      function showMainApp() {
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('userName').textContent = currentUser.username;
+        loadNotes();
+        loadStorageInfo();
+      }
+
+      // Storage management functions
+      async function loadStorageInfo() {
+        try {
+          const response = await fetch(`${API_BASE}/storage`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            updateStorageDisplay(data.storage);
+          }
+        } catch (error) {
+          console.error('Failed to load storage info:', error);
+        }
+      }
+
+      function updateStorageDisplay(storage) {
+        const usedMB = (storage.used_storage / 1024 / 1024).toFixed(1);
+        const limitMB = (storage.storage_limit_bytes / 1024 / 1024).toFixed(1);
+        const percentage = (storage.used_storage / storage.storage_limit_bytes) * 100;
+
+        document.getElementById('storageUsed').textContent = `${usedMB} MB`;
+        document.getElementById('storageLimit').textContent = `${limitMB} MB`;
+
+        const progressBar = document.getElementById('storageProgress');
+        progressBar.style.width = `${percentage}%`;
+
+        // Update progress bar color based on usage
+        progressBar.className = 'storage-progress';
+        if (percentage > 80) {
+          progressBar.classList.add('danger');
+        } else if (percentage > 60) {
+          progressBar.classList.add('warning');
+        }
+      }
+
+      async function checkStorageLimit(fileSize) {
+        try {
+          const response = await fetch(`${API_BASE}/storage`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const storage = data.storage;
+            const newTotalSize = storage.used_storage + fileSize;
+            
+            return {
+              canUpload: newTotalSize <= storage.storage_limit_bytes,
+              currentUsage: storage.used_storage,
+              limit: storage.storage_limit_bytes,
+              remaining: storage.remaining_storage
+            };
+          }
+        } catch (error) {
+          console.error('Failed to check storage limit:', error);
+        }
+        return { canUpload: true }; // Allow upload if check fails
+      }
+
+      function showLogin() {
+        document.getElementById('loginForm').classList.add('active');
+        document.getElementById('registerForm').classList.remove('active');
+      }
+
+      function showRegister() {
+        document.getElementById('loginForm').classList.remove('active');
+        document.getElementById('registerForm').classList.add('active');
+      }
+
+      async function handleLogin(event) {
+        event.preventDefault();
+        
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+          const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            authToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem('authToken', data.token);
+            showMainApp();
+          } else {
+            showError(data.error);
+          }
+        } catch (error) {
+          showError('Login failed. Please try again.');
+        }
+      }
+
+      async function handleRegister(event) {
+        event.preventDefault();
+        
+        const username = document.getElementById('registerUsername').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+
+        try {
+          const response = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            authToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem('authToken', data.token);
+            showMainApp();
+          } else {
+            showError(data.error);
+          }
+        } catch (error) {
+          showError('Registration failed. Please try again.');
+        }
+      }
+
+      function logout() {
+        localStorage.removeItem('authToken');
+        authToken = null;
+        currentUser = null;
+        showAuth();
+      }
+
+      // Tab navigation
+      function showTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(tabName + 'Tab').classList.add('active');
+
+        // Load data for specific tabs
+        if (tabName === 'notes') {
+          loadNotes();
+        } else if (tabName === 'search') {
+          // Clear search results
+          document.getElementById('searchResults').innerHTML = '';
+        }
+      }
+
+      // File handling
+      document.getElementById('audioFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          currentFile = file;
+          displayFileInfo(file);
+        }
+      });
+
+      function displayFileInfo(file) {
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileType = document.getElementById('fileType');
+
+        fileName.textContent = file.name;
+        fileSize.textContent = `Size: ${formatFileSize(file.size)}`;
+        fileType.textContent = `Type: ${file.type}`;
+
+        fileInfo.classList.add('show');
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      // Audio processing
+      async function transcribeAudio() {
+        if (!currentFile) {
+          showError('Please select a file first');
+          return;
+        }
+
+        // Check storage limit before uploading
+        const storageCheck = await checkStorageLimit(currentFile.size);
+        if (!storageCheck.canUpload) {
+          const usedMB = (storageCheck.currentUsage / 1024 / 1024).toFixed(1);
+          const limitMB = (storageCheck.limit / 1024 / 1024).toFixed(1);
+          showError(`Storage limit exceeded! You have used ${usedMB} MB of ${limitMB} MB. Please delete some files to free up space.`);
+          return;
+        }
+
+        const transcribeBtn = document.getElementById('transcribeBtn');
+        transcribeBtn.disabled = true;
+        transcribeBtn.textContent = 'Processing...';
+
+        const formData = new FormData();
+        formData.append('audio', currentFile);
+
+        try {
+          // Transcribe
+          const transcribeResponse = await fetch(`${API_BASE}/transcribe`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            },
+            body: formData
+          });
+
+          const transcribeData = await transcribeResponse.json();
+
+          if (transcribeResponse.ok) {
+            transcriptionData = transcribeData;
+            currentNoteId = transcribeData.noteId;
+            displayTranscription(transcribeData.text);
+
+            // Generate summary
+            const summaryResponse = await fetch(`${API_BASE}/summarize`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+              },
+              body: JSON.stringify({ 
+                text: transcribeData.text,
+                noteId: currentNoteId
+              })
+            });
+
+            const summaryData = await summaryResponse.json();
+
+            if (summaryResponse.ok) {
+              displaySummary(summaryData.summary);
+              showSuccess('Audio processed successfully! Note saved.');
+              loadStorageInfo(); // Refresh storage info after successful upload
+            } else {
+              showError('Summary generation failed: ' + summaryData.error);
+            }
+          } else {
+            showError('Transcription failed: ' + transcribeData.error);
+          }
+        } catch (error) {
+          console.error('Processing error:', error);
+          showError('Failed to process audio. Please try again.');
+        } finally {
+          transcribeBtn.disabled = false;
+          transcribeBtn.textContent = 'Process Audio';
+        }
+      }
+
+      function displayTranscription(text) {
+        document.getElementById('transcriptionText').textContent = text;
+        document.getElementById('transcriptionSection').style.display = 'block';
+      }
+
+      function displaySummary(text) {
+        document.getElementById('summaryText').textContent = text;
+        document.getElementById('summarySection').style.display = 'block';
+      }
+
+      // Notes management
+      async function loadNotes() {
+        try {
+          const response = await fetch(`${API_BASE}/notes`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            displayNotes(data.notes);
+          } else {
+            showError('Failed to load notes');
+          }
+        } catch (error) {
+          console.error('Load notes error:', error);
+          showError('Failed to load notes');
+        }
+      }
+
+      function displayNotes(notes) {
+        const notesList = document.getElementById('notesList');
+        
+        if (notes.length === 0) {
+          notesList.innerHTML = '<div class="loading">No notes yet. Upload an audio file to get started!</div>';
+          return;
+        }
+
+        notesList.innerHTML = notes.map(note => `
+          <div class="note-card">
+            <div class="note-header">
+              <div>
+                <div class="note-title">${note.title}</div>
+                <div class="note-meta">
+                  <span>${new Date(note.created_at).toLocaleDateString()}</span>
+                  <span>${formatFileSize(note.file_size || 0)}</span>
+                  ${note.category_name ? `<span class="note-category">${note.category_name}</span>` : ''}
+                </div>
+              </div>
+              <div class="note-actions">
+                <button class="note-btn" onclick="viewNote(${note.id})">View</button>
+                <button class="note-btn delete" onclick="deleteNote(${note.id})">Delete</button>
+              </div>
+            </div>
+            <div class="note-preview">
+              ${note.transcription_text ? note.transcription_text.substring(0, 150) + '...' : 'No transcription available'}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      async function deleteNote(noteId) {
+        if (!confirm('Are you sure you want to delete this note?')) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE}/notes/${noteId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          if (response.ok) {
+            showSuccess('Note deleted successfully');
+            loadNotes();
+            loadStorageInfo(); // Refresh storage info after deletion
+          } else {
+            const data = await response.json();
+            showError('Failed to delete note: ' + data.error);
+          }
+        } catch (error) {
+          console.error('Delete note error:', error);
+          showError('Failed to delete note');
+        }
+      }
+
+      function viewNote(noteId) {
+        // For now, just show a simple view
+        // In a full implementation, this would open a detailed view modal
+        alert('Note viewing feature coming soon!');
+      }
+
+      // Search functionality
+      async function searchNotes() {
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        
+        if (searchTerm.length < 2) {
+          document.getElementById('searchResults').innerHTML = '';
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE}/notes/search/${encodeURIComponent(searchTerm)}`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            displaySearchResults(data.notes);
+          } else {
+            showError('Search failed');
+          }
+        } catch (error) {
+          console.error('Search error:', error);
+          showError('Search failed');
+        }
+      }
+
+      function displaySearchResults(notes) {
+        const searchResults = document.getElementById('searchResults');
+        
+        if (notes.length === 0) {
+          searchResults.innerHTML = '<div class="loading">No notes found matching your search.</div>';
+          return;
+        }
+
+        searchResults.innerHTML = notes.map(note => `
+          <div class="note-card">
+            <div class="note-header">
+              <div>
+                <div class="note-title">${note.title}</div>
+                <div class="note-meta">
+                  <span>${new Date(note.created_at).toLocaleDateString()}</span>
+                  <span>${formatFileSize(note.file_size || 0)}</span>
+                  ${note.category_name ? `<span class="note-category">${note.category_name}</span>` : ''}
+                </div>
+              </div>
+              <div class="note-actions">
+                <button class="note-btn" onclick="viewNote(${note.id})">View</button>
+                <button class="note-btn delete" onclick="deleteNote(${note.id})">Delete</button>
+              </div>
+            </div>
+            <div class="note-preview">
+              ${note.transcription_text ? note.transcription_text.substring(0, 150) + '...' : 'No transcription available'}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Utility functions
+      function showError(message) {
+        const error = document.createElement('div');
+        error.className = 'error';
+        error.textContent = message;
+        document.querySelector('.app-container').insertBefore(error, document.querySelector('.app-container').firstChild);
+        
+        setTimeout(() => {
+          error.remove();
+        }, 5000);
+      }
+
+      function showSuccess(message) {
+        const success = document.createElement('div');
+        success.className = 'success';
+        success.textContent = message;
+        document.querySelector('.app-container').insertBefore(success, document.querySelector('.app-container').firstChild);
+        
+        setTimeout(() => {
+          success.remove();
+        }, 5000);
+      }
+    </script>
+  </body>
+</html> 

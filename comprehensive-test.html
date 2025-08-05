@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassNote AI - Comprehensive Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .file-input { margin: 10px 0; }
+        .progress { 
+            width: 100%; 
+            height: 20px; 
+            background-color: #e9ecef; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            margin: 10px 0; 
+        }
+        .progress-bar { 
+            height: 100%; 
+            background-color: #007bff; 
+            width: 0%; 
+            transition: width 0.3s ease; 
+        }
+        pre { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto; 
+            font-size: 12px; 
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 ClassNote AI - Comprehensive Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>📊 System Status</h2>
+        <div id="systemStatus"></div>
+        <button onclick="testSystemStatus()">Test System Status</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🔐 Authentication Tests</h2>
+        <div id="authTests"></div>
+        <button onclick="testAuthentication()">Test Authentication</button>
+        <button onclick="testRegistration()">Test Registration</button>
+        <button onclick="testLogin()">Test Login</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🎵 Audio Processing Tests</h2>
+        <div id="audioTests"></div>
+        <input type="file" id="testAudioFile" class="file-input" accept="audio/*">
+        <button onclick="testAudioUpload()">Test Audio Upload</button>
+        <button onclick="testTranscription()">Test Transcription</button>
+        <button onclick="testSummarization()">Test Summarization</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Notes Management Tests</h2>
+        <div id="notesTests"></div>
+        <button onclick="testCreateNote()">Test Create Note</button>
+        <button onclick="testGetNotes()">Test Get Notes</button>
+        <button onclick="testSearchNotes()">Test Search Notes</button>
+    </div>
+
+    <div class="test-section">
+        <h2>💾 Storage Tests</h2>
+        <div id="storageTests"></div>
+        <button onclick="testStorageInfo()">Test Storage Info</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🌐 API Endpoint Tests</h2>
+        <div class="test-grid">
+            <div>
+                <h3>Backend Endpoints</h3>
+                <div id="backendEndpoints"></div>
+                <button onclick="testBackendEndpoints()">Test Backend</button>
+            </div>
+            <div>
+                <h3>Frontend Status</h3>
+                <div id="frontendStatus"></div>
+                <button onclick="testFrontendStatus()">Test Frontend</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Test Results Summary</h2>
+        <div id="testSummary"></div>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+        let authToken = null;
+        let currentUser = null;
+        let testResults = [];
+
+        function addResult(section, message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            document.getElementById(section).appendChild(div);
+            
+            testResults.push({ section, message, type, timestamp: new Date() });
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('testSummary');
+            const successCount = testResults.filter(r => r.type === 'success').length;
+            const errorCount = testResults.filter(r => r.type === 'error').length;
+            const warningCount = testResults.filter(r => r.type === 'warning').length;
+            
+            summary.innerHTML = `
+                <div class="test-result success">✅ Passed: ${successCount}</div>
+                <div class="test-result error">❌ Failed: ${errorCount}</div>
+                <div class="test-result warning">⚠️ Warnings: ${warningCount}</div>
+                <div class="test-result info">📊 Total Tests: ${testResults.length}</div>
+            `;
+        }
+
+        async function testSystemStatus() {
+            addResult('systemStatus', 'Testing system status...', 'info');
+            
+            try {
+                // Test backend
+                const backendResponse = await fetch(`${API_BASE}/`, { timeout: 5000 });
+                if (backendResponse.ok) {
+                    addResult('systemStatus', '✅ Backend server is running', 'success');
+                } else {
+                    addResult('systemStatus', '❌ Backend server error', 'error');
+                }
+            } catch (error) {
+                addResult('systemStatus', `❌ Backend server not accessible: ${error.message}`, 'error');
+            }
+
+            try {
+                // Test frontend
+                const frontendResponse = await fetch('http://localhost:5173', { timeout: 5000 });
+                if (frontendResponse.ok) {
+                    addResult('systemStatus', '✅ Frontend server is running', 'success');
+                } else {
+                    addResult('systemStatus', '❌ Frontend server error', 'error');
+                }
+            } catch (error) {
+                addResult('systemStatus', `❌ Frontend server not accessible: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAuthentication() {
+            addResult('authTests', 'Testing authentication endpoints...', 'info');
+            
+            try {
+                // Test registration endpoint
+                const registerResponse = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        email: 'test@example.com',
+                        password: 'testpass123'
+                    })
+                });
+                
+                if (registerResponse.ok) {
+                    addResult('authTests', '✅ Registration endpoint working', 'success');
+                } else {
+                    const data = await registerResponse.json();
+                    addResult('authTests', `⚠️ Registration endpoint: ${data.error || 'Unknown error'}`, 'warning');
+                }
+            } catch (error) {
+                addResult('authTests', `❌ Registration test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRegistration() {
+            addResult('authTests', 'Testing user registration...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: `testuser_${Date.now()}`,
+                        email: `test_${Date.now()}@example.com`,
+                        password: 'testpass123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    addResult('authTests', '✅ User registration successful', 'success');
+                } else {
+                    addResult('authTests', `❌ Registration failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addResult('authTests', `❌ Registration error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            addResult('authTests', 'Testing user login...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        password: 'testpass123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    addResult('authTests', '✅ User login successful', 'success');
+                } else {
+                    addResult('authTests', `⚠️ Login test: ${data.error}`, 'warning');
+                }
+            } catch (error) {
+                addResult('authTests', `❌ Login error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAudioUpload() {
+            const fileInput = document.getElementById('testAudioFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                addResult('audioTests', '❌ No audio file selected', 'error');
+                return;
+            }
+            
+            addResult('audioTests', `Testing audio upload: ${file.name} (${file.size} bytes)`, 'info');
+            
+            try {
+                const formData = new FormData();
+                formData.append('audio', file);
+                
+                const response = await fetch(`${API_BASE}/transcribe`, {
+                    method: 'POST',
+                    headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {},
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('audioTests', '✅ Audio upload and transcription successful', 'success');
+                    addResult('audioTests', `📝 Transcription length: ${data.text?.length || 0} characters`, 'info');
+                } else {
+                    addResult('audioTests', `❌ Audio processing failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addResult('audioTests', `❌ Audio upload error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testTranscription() {
+            addResult('audioTests', 'Testing transcription with sample text...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/summarize`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                    },
+                    body: JSON.stringify({
+                        text: 'This is a sample text for testing the summarization functionality. It contains multiple sentences to ensure the AI can process and summarize the content effectively.'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('audioTests', '✅ Summarization successful', 'success');
+                    addResult('audioTests', `📋 Summary: ${data.summary?.substring(0, 100)}...`, 'info');
+                } else {
+                    addResult('audioTests', `❌ Summarization failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addResult('audioTests', `❌ Summarization error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSummarization() {
+            addResult('audioTests', 'Testing summarization endpoint...', 'info');
+            
+            const sampleText = `
+                Artificial Intelligence (AI) is a branch of computer science that aims to create intelligent machines that work and react like humans. 
+                Some of the activities computers with artificial intelligence are designed for include speech recognition, learning, planning, and problem solving. 
+                AI has been used in various applications including virtual assistants, autonomous vehicles, medical diagnosis, and game playing.
+            `;
+            
+            try {
+                const response = await fetch(`${API_BASE}/summarize`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                    },
+                    body: JSON.stringify({ text: sampleText })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('audioTests', '✅ Summarization endpoint working', 'success');
+                } else {
+                    addResult('audioTests', `❌ Summarization endpoint error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addResult('audioTests', `❌ Summarization test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCreateNote() {
+            addResult('notesTests', 'Testing note creation...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/notes`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                    },
+                    body: JSON.stringify({
+                        title: 'Test Note',
+                        transcription_text: 'This is a test note for testing purposes.',
+                        summary_text: 'Test summary',
+                        file_size: 1024
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('notesTests', '✅ Note creation successful', 'success');
+                } else {
+                    addResult('notesTests', `❌ Note creation failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addResult('notesTests', `❌ Note creation error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetNotes() {
+            addResult('notesTests', 'Testing get notes...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/notes`, {
+                    headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('notesTests', `✅ Retrieved ${data.notes?.length || 0} notes`, 'success');
+                } else {
+                    addResult('notesTests', `❌ Get notes failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addResult('notesTests', `❌ Get notes error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSearchNotes() {
+            addResult('notesTests', 'Testing note search...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/notes/search/test`, {
+                    headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('notesTests', `✅ Search returned ${data.notes?.length || 0} results`, 'success');
+                } else {
+                    addResult('notesTests', `❌ Search failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addResult('notesTests', `❌ Search error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStorageInfo() {
+            addResult('storageTests', 'Testing storage information...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/storage`, {
+                    headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const storage = data.storage;
+                    const usedMB = (storage.used_storage / 1024 / 1024).toFixed(2);
+                    const limitMB = (storage.storage_limit_bytes / 1024 / 1024).toFixed(2);
+                    addResult('storageTests', `✅ Storage: ${usedMB} MB used of ${limitMB} MB`, 'success');
+                } else {
+                    addResult('storageTests', `❌ Storage info failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addResult('storageTests', `❌ Storage info error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBackendEndpoints() {
+            addResult('backendEndpoints', 'Testing backend endpoints...', 'info');
+            
+            const endpoints = [
+                { path: '/', method: 'GET', name: 'Health Check' },
+                { path: '/auth/register', method: 'POST', name: 'Register' },
+                { path: '/auth/login', method: 'POST', name: 'Login' },
+                { path: '/transcribe', method: 'POST', name: 'Transcribe' },
+                { path: '/summarize', method: 'POST', name: 'Summarize' },
+                { path: '/notes', method: 'GET', name: 'Get Notes' },
+                { path: '/storage', method: 'GET', name: 'Storage Info' }
+            ];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`${API_BASE}${endpoint.path}`, {
+                        method: endpoint.method,
+                        headers: { 'Content-Type': 'application/json' },
+                        ...(endpoint.method === 'POST' && { body: JSON.stringify({}) })
+                    });
+                    
+                    if (response.status !== 405) { // 405 Method Not Allowed is expected for some endpoints
+                        addResult('backendEndpoints', `✅ ${endpoint.name}: ${response.status}`, 'success');
+                    } else {
+                        addResult('backendEndpoints', `⚠️ ${endpoint.name}: Method not allowed (expected)`, 'warning');
+                    }
+                } catch (error) {
+                    addResult('backendEndpoints', `❌ ${endpoint.name}: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testFrontendStatus() {
+            addResult('frontendStatus', 'Testing frontend status...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:5173');
+                
+                if (response.ok) {
+                    addResult('frontendStatus', '✅ Frontend is accessible', 'success');
+                } else {
+                    addResult('frontendStatus', `❌ Frontend error: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult('frontendStatus', `❌ Frontend not accessible: ${error.message}`, 'error');
+            }
+        }
+
+        async function runAllTests() {
+            addResult('testSummary', '🚀 Starting comprehensive test suite...', 'info');
+            
+            await testSystemStatus();
+            await testAuthentication();
+            await testBackendEndpoints();
+            await testFrontendStatus();
+            await testStorageInfo();
+            await testTranscription();
+            await testSummarization();
+            
+            addResult('testSummary', '🎉 All tests completed!', 'success');
+        }
+
+        function clearResults() {
+            const sections = ['systemStatus', 'authTests', 'audioTests', 'notesTests', 'storageTests', 'backendEndpoints', 'frontendStatus', 'testSummary'];
+            sections.forEach(section => {
+                document.getElementById(section).innerHTML = '';
+            });
+            testResults = [];
+            updateSummary();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            addResult('testSummary', '🧪 Test suite loaded and ready', 'info');
+        });
+    </script>
+</body>
+</html> 

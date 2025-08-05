@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassNote AI - Direct Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            min-height: 100px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .transcription-text {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #007bff;
+        }
+        .summary-text {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 ClassNote AI - Direct Test</h1>
+        <p>This page directly tests the backend API to bypass any caching issues.</p>
+        
+        <button onclick="testTranscribe()">Test Transcribe (Demo Mode)</button>
+        <button onclick="testSummarize()">Test Summarize (Demo Mode)</button>
+        <button onclick="testBoth()">Test Complete Flow</button>
+        
+        <div id="output">Click a button above to test the backend API...</div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3001';
+        const CACHE_BUSTER = Date.now() + Math.random();
+
+        async function testTranscribe() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<span style="color: #007bff;">Testing transcribe endpoint...</span>';
+
+            try {
+                // Create a minimal WAV file
+                const wavHeader = new Uint8Array([
+                    0x52, 0x49, 0x46, 0x46, // RIFF
+                    0x24, 0x00, 0x00, 0x00, // File size - 8
+                    0x57, 0x41, 0x56, 0x45, // WAVE
+                    0x66, 0x6D, 0x74, 0x20, // fmt 
+                    0x10, 0x00, 0x00, 0x00, // Chunk size
+                    0x01, 0x00,             // Audio format (PCM)
+                    0x01, 0x00,             // Channels (1)
+                    0x44, 0xAC, 0x00, 0x00, // Sample rate (44100)
+                    0x88, 0x58, 0x01, 0x00, // Byte rate
+                    0x02, 0x00,             // Block align
+                    0x10, 0x00,             // Bits per sample
+                    0x64, 0x61, 0x74, 0x61, // data
+                    0x00, 0x00, 0x00, 0x00  // Data size (0 bytes)
+                ]);
+
+                const formData = new FormData();
+                const blob = new Blob([wavHeader], { type: 'audio/wav' });
+                formData.append('audio', blob, 'test.wav');
+
+                const response = await fetch(`${API_URL}/transcribe?t=${CACHE_BUSTER}`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                output.innerHTML = `
+                    <div class="section-title">📝 Transcription Test Result</div>
+                    <div class="transcription-text">${data.text}</div>
+                    <p><strong>Text length:</strong> ${data.text.length} characters</p>
+                    <p><strong>Contains improved text:</strong> ${data.text.includes("Welcome to today's lecture") ? '✅ YES' : '❌ NO'}</p>
+                `;
+
+            } catch (error) {
+                output.innerHTML = `<span style="color: #dc3545;">Error: ${error.message}</span>`;
+            }
+        }
+
+        async function testSummarize() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<span style="color: #007bff;">Testing summarize endpoint...</span>';
+
+            try {
+                const testText = "This is a test lecture about artificial intelligence. AI is transforming various industries including healthcare, finance, and education. Machine learning algorithms can process large amounts of data to identify patterns and make predictions.";
+
+                const response = await fetch(`${API_URL}/summarize?t=${CACHE_BUSTER}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
+                    body: JSON.stringify({ text: testText })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                output.innerHTML = `
+                    <div class="section-title">📋 Summary Test Result</div>
+                    <div class="summary-text">${data.summary}</div>
+                    <p><strong>Summary length:</strong> ${data.summary.length} characters</p>
+                `;
+
+            } catch (error) {
+                output.innerHTML = `<span style="color: #dc3545;">Error: ${error.message}</span>`;
+            }
+        }
+
+        async function testBoth() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<span style="color: #007bff;">Testing complete flow...</span>';
+
+            try {
+                // Step 1: Test transcribe
+                output.innerHTML = '<span style="color: #007bff;">Step 1: Testing transcribe...</span>';
+                
+                const wavHeader = new Uint8Array([
+                    0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+                    0x66, 0x6D, 0x74, 0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
+                    0x44, 0xAC, 0x00, 0x00, 0x88, 0x58, 0x01, 0x00, 0x02, 0x00, 0x10, 0x00,
+                    0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
+                ]);
+
+                const formData = new FormData();
+                const blob = new Blob([wavHeader], { type: 'audio/wav' });
+                formData.append('audio', blob, 'test.wav');
+
+                const transcribeResponse = await fetch(`${API_URL}/transcribe?t=${CACHE_BUSTER}`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+
+                if (!transcribeResponse.ok) {
+                    throw new Error(`Transcribe HTTP error! status: ${transcribeResponse.status}`);
+                }
+
+                const transcribeData = await transcribeResponse.json();
+
+                // Step 2: Test summarize
+                output.innerHTML = '<span style="color: #007bff;">Step 2: Testing summarize...</span>';
+                
+                const summarizeResponse = await fetch(`${API_URL}/summarize?t=${CACHE_BUSTER}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
+                    body: JSON.stringify({ text: transcribeData.text })
+                });
+
+                if (!summarizeResponse.ok) {
+                    throw new Error(`Summarize HTTP error! status: ${summarizeResponse.status}`);
+                }
+
+                const summarizeData = await summarizeResponse.json();
+                
+                // Show results
+                output.innerHTML = `
+                    <div class="section-title">🎉 Complete Flow Test Results</div>
+                    
+                    <div class="section-title">📝 Transcription</div>
+                    <div class="transcription-text">${transcribeData.text}</div>
+                    
+                    <div class="section-title">📋 Summary</div>
+                    <div class="summary-text">${summarizeData.summary}</div>
+                    
+                    <p><strong>✅ Backend is working correctly!</strong></p>
+                    <p><strong>Demo mode:</strong> ${transcribeData.text.includes("Welcome to today's lecture") ? 'Active' : 'Not Active'}</p>
+                `;
+
+            } catch (error) {
+                output.innerHTML = `<span style="color: #dc3545;">Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html> 

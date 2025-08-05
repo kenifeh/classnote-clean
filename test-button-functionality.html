@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .test-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Button Functionality Test</h1>
+        <p>This page tests if the Process Audio button and related functions are working properly.</p>
+        
+        <h3>Test 1: Basic Button Click</h3>
+        <button onclick="testBasicClick()">Test Basic Click</button>
+        <div id="basicResult" class="test-result"></div>
+        
+        <h3>Test 2: uploadAudio Function Availability</h3>
+        <button onclick="testUploadAudioFunction()">Test uploadAudio Function</button>
+        <div id="functionResult" class="test-result"></div>
+        
+        <h3>Test 3: File Input Simulation</h3>
+        <input type="file" id="testFile" accept="audio/*" />
+        <button onclick="testFileInput()">Test File Input</button>
+        <div id="fileResult" class="test-result"></div>
+        
+        <h3>Test 4: Backend Connection</h3>
+        <button onclick="testBackendConnection()">Test Backend Connection</button>
+        <div id="backendResult" class="test-result"></div>
+        
+        <h3>Test 5: Main App Button Simulation</h3>
+        <button onclick="simulateMainAppButton()">Simulate Main App Button</button>
+        <div id="mainAppResult" class="test-result"></div>
+        
+        <hr>
+        <h3>Debug Information</h3>
+        <div id="debugInfo" class="test-result"></div>
+    </div>
+
+    <script>
+        // Test 1: Basic button click
+        function testBasicClick() {
+            const result = document.getElementById('basicResult');
+            result.innerHTML = '<strong>✅ Basic button click works!</strong><br>JavaScript event handling is functional.';
+            result.className = 'test-result success';
+        }
+        
+        // Test 2: Check if uploadAudio function exists
+        function testUploadAudioFunction() {
+            const result = document.getElementById('functionResult');
+            if (typeof window.uploadAudio === 'function') {
+                result.innerHTML = '<strong>✅ uploadAudio function is available!</strong><br>Function type: ' + typeof window.uploadAudio;
+                result.className = 'test-result success';
+            } else {
+                result.innerHTML = '<strong>❌ uploadAudio function is NOT available!</strong><br>This is the problem - the function is not accessible.';
+                result.className = 'test-result error';
+            }
+        }
+        
+        // Test 3: File input functionality
+        function testFileInput() {
+            const result = document.getElementById('fileResult');
+            const fileInput = document.getElementById('testFile');
+            
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                result.innerHTML = `
+                    <strong>✅ File input works!</strong><br>
+                    File: ${file.name}<br>
+                    Size: ${file.size} bytes<br>
+                    Type: ${file.type || 'Unknown'}
+                `;
+                result.className = 'test-result success';
+            } else {
+                result.innerHTML = '<strong>⚠️ No file selected</strong><br>Please select an audio file first.';
+                result.className = 'test-result';
+            }
+        }
+        
+        // Test 4: Backend connection
+        async function testBackendConnection() {
+            const result = document.getElementById('backendResult');
+            result.innerHTML = '<strong>🔄 Testing backend connection...</strong>';
+            result.className = 'test-result';
+            
+            try {
+                const response = await fetch('http://localhost:3001/', {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.text();
+                    result.innerHTML = '<strong>✅ Backend is running!</strong><br>Response: ' + data.substring(0, 100) + '...';
+                    result.className = 'test-result success';
+                } else {
+                    result.innerHTML = '<strong>❌ Backend responded with error!</strong><br>Status: ' + response.status;
+                    result.className = 'test-result error';
+                }
+            } catch (error) {
+                result.innerHTML = '<strong>❌ Backend connection failed!</strong><br>Error: ' + error.message;
+                result.className = 'test-result error';
+            }
+        }
+        
+        // Test 5: Simulate main app button
+        function simulateMainAppButton() {
+            const result = document.getElementById('mainAppResult');
+            
+            // Check if we can access the main app's uploadAudio function
+            if (typeof window.uploadAudio === 'function') {
+                result.innerHTML = '<strong>✅ Main app button should work!</strong><br>The uploadAudio function is available and should be callable.';
+                result.className = 'test-result success';
+            } else {
+                result.innerHTML = '<strong>❌ Main app button will NOT work!</strong><br>The uploadAudio function is not available in the global scope.';
+                result.className = 'test-result error';
+            }
+        }
+        
+        // Update debug info
+        function updateDebugInfo() {
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerHTML = `
+                <strong>Debug Information:</strong><br>
+                • uploadAudio function type: ${typeof window.uploadAudio}<br>
+                • uploadAudio function available: ${typeof window.uploadAudio === 'function' ? 'Yes' : 'No'}<br>
+                • Current URL: ${window.location.href}<br>
+                • User Agent: ${navigator.userAgent.substring(0, 50)}...<br>
+                • Timestamp: ${new Date().toLocaleString()}
+            `;
+        }
+        
+        // Initialize
+        updateDebugInfo();
+        setInterval(updateDebugInfo, 5000); // Update every 5 seconds
+    </script>
+</body>
+</html> 

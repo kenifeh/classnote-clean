@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Upload - ClassNote AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .file-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0 10px 0;
+            font-size: 18px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Upload - ClassNote AI</h1>
+        <p>This page will help you understand why your upload might not be working.</p>
+        
+        <div class="file-info">
+            <h3>📁 File Upload Test</h3>
+            <input type="file" id="audioFile" accept="audio/*" />
+            <br />
+            <button onclick="analyzeFile()" id="analyzeBtn">🔍 Analyze File</button>
+            <button onclick="testUpload()" id="uploadBtn" disabled>🚀 Test Upload</button>
+        </div>
+        
+        <div id="output">Select an audio file and click "Analyze File" to begin...</div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3001';
+        let selectedFile = null;
+
+        function analyzeFile() {
+            const fileInput = document.getElementById('audioFile');
+            const output = document.getElementById('output');
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            if (!fileInput.files[0]) {
+                output.innerHTML = '<div class="error">❌ Please select a file first.</div>';
+                return;
+            }
+
+            selectedFile = fileInput.files[0];
+            
+            let analysis = '<div class="section-title">📊 File Analysis</div>';
+            
+            // File size check
+            const fileSizeKB = (selectedFile.size / 1024).toFixed(2);
+            const fileSizeMB = (selectedFile.size / 1024 / 1024).toFixed(2);
+            
+            analysis += `<div class="file-info">
+                <strong>📁 File Name:</strong> ${selectedFile.name}<br>
+                <strong>📏 File Size:</strong> ${fileSizeKB} KB (${fileSizeMB} MB)<br>
+                <strong>🎵 MIME Type:</strong> ${selectedFile.type}<br>
+                <strong>📅 Last Modified:</strong> ${new Date(selectedFile.lastModified).toLocaleString()}
+            </div>`;
+            
+            // Size analysis
+            if (selectedFile.size < 1024) {
+                analysis += '<div class="error">❌ WARNING: File is very small (less than 1KB). This might not be a real audio file.</div>';
+            } else if (selectedFile.size < 10240) {
+                analysis += '<div class="warning">⚠️ WARNING: File is quite small (less than 10KB). Audio might be too short.</div>';
+            } else {
+                analysis += '<div class="success">✅ File size looks reasonable for an audio file.</div>';
+            }
+            
+            // MIME type analysis
+            const validAudioTypes = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/flac', 'audio/ogg', 'audio/webm', 'audio/aac'];
+            if (validAudioTypes.includes(selectedFile.type)) {
+                analysis += '<div class="success">✅ File type is supported by OpenAI Whisper.</div>';
+            } else if (selectedFile.type === '') {
+                analysis += '<div class="warning">⚠️ File type not detected. Check file extension.</div>';
+            } else {
+                analysis += `<div class="error">❌ File type "${selectedFile.type}" might not be supported.</div>`;
+            }
+            
+            // File extension check
+            const extension = selectedFile.name.split('.').pop().toLowerCase();
+            const validExtensions = ['mp3', 'wav', 'm4a', 'flac', 'ogg', 'webm', 'aac'];
+            if (validExtensions.includes(extension)) {
+                analysis += '<div class="success">✅ File extension is supported.</div>';
+            } else {
+                analysis += `<div class="error">❌ File extension ".${extension}" might not be supported.</div>`;
+            }
+            
+            // Recommendations
+            analysis += '<div class="section-title">💡 Recommendations</div>';
+            if (selectedFile.size < 1024) {
+                analysis += '<div class="error">❌ This file is too small to be a real audio file. Please upload an actual audio recording.</div>';
+            } else if (selectedFile.size < 10240) {
+                analysis += '<div class="warning">⚠️ This file might be too short. Try recording at least 5-10 seconds of audio.</div>';
+            } else {
+                analysis += '<div class="success">✅ File looks good! Click "Test Upload" to try uploading it.</div>';
+                uploadBtn.disabled = false;
+            }
+            
+            output.innerHTML = analysis;
+        }
+
+        async function testUpload() {
+            if (!selectedFile) {
+                return;
+            }
+
+            const output = document.getElementById('output');
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+            
+            output.innerHTML += '<div class="section-title">🚀 Testing Upload</div>';
+            output.innerHTML += '<div class="file-info">📤 Uploading file to OpenAI Whisper API...</div>';
+
+            const formData = new FormData();
+            formData.append('audio', selectedFile);
+
+            try {
+                const response = await fetch(`${API_URL}/transcribe`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                output.innerHTML += '<div class="section-title">📝 API Response</div>';
+                output.innerHTML += `<div class="file-info">
+                    <strong>Status:</strong> ${response.status}<br>
+                    <strong>Response:</strong> ${JSON.stringify(data, null, 2)}
+                </div>`;
+                
+                // Analyze the response
+                if (data.text && data.text.includes("This is the transcription of your audio file")) {
+                    output.innerHTML += '<div class="error">❌ Still getting demo response. This means the file was rejected by OpenAI Whisper.</div>';
+                    output.innerHTML += '<div class="warning">💡 Possible reasons:<br>';
+                    output.innerHTML += '• File is too short (less than 0.1 seconds)<br>';
+                    output.innerHTML += '• File is not a real audio file<br>';
+                    output.innerHTML += '• File format is not supported<br>';
+                    output.innerHTML += '• File is corrupted or empty</div>';
+                } else if (data.text && data.text.includes("Welcome to today's lecture")) {
+                    output.innerHTML += '<div class="error">❌ Getting demo response. API key might not be working for transcription.</div>';
+                } else if (data.text) {
+                    output.innerHTML += '<div class="success">✅ Real transcription received! The API is working correctly.</div>';
+                } else {
+                    output.innerHTML += '<div class="error">❌ No transcription received.</div>';
+                }
+                
+            } catch (error) {
+                output.innerHTML += `<div class="error">❌ Upload failed: ${error.message}</div>`;
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '🚀 Test Upload';
+            }
+        }
+    </script>
+</body>
+</html> 

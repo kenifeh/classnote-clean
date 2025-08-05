@@ -1,14 +1,4898 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>ClassNote AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <script defer src="app.js"></script>
-</head>
-<body>
-  <h1>ClassNote AI</h1>
-  <input type="file" id="audioFile" />
-  <button onclick="uploadAudio()">Upload</button>
-  <div id="output"></div>  
-</body>
-</html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <!-- Mobile-specific meta tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ClassNote AI" />
+    <meta name="application-name" content="ClassNote AI" />
+    <meta name="theme-color" content="#2c2c2c" />
+    <meta name="msapplication-TileColor" content="#2c2c2c" />
+    
+    <!-- iOS specific -->
+    <link rel="apple-touch-icon" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/vite.svg" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <title>ClassNote AI</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        background-color: #ffffff;
+        color: #2c2c2c;
+        line-height: 1.6;
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .app-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        min-height: 100vh;
+      }
+
+      /* Auth Forms */
+      .auth-container {
+        max-width: 400px;
+        margin: 100px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      }
+
+      .auth-form {
+        display: none;
+      }
+
+      .auth-form.active {
+        display: block;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #2c2c2c;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.2s ease;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+
+      .btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        width: 100%;
+      }
+
+      .btn:hover {
+        background: #0056b3;
+      }
+
+      .btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      .auth-toggle {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .auth-toggle a {
+        color: #007bff;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      /* Main App */
+      .main-app {
+        display: none;
+      }
+
+      .main-app.active {
+        display: block;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+      }
+
+      .app-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+      }
+
+      .user-menu {
+        position: relative;
+      }
+
+      .user-button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: none;
+        border: 1px solid #d1d5db;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .user-button:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+      }
+
+      .user-avatar {
+        width: 24px;
+        height: 24px;
+        background: #3b82f6;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .user-name {
+        font-weight: 500;
+        color: #374151;
+        font-size: 14px;
+      }
+
+      .dropdown-arrow {
+        color: #6b7280;
+        font-size: 12px;
+      }
+
+      .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        min-width: 120px;
+        z-index: 10;
+        display: none;
+      }
+
+      .user-dropdown.show {
+        display: block;
+      }
+
+      .user-dropdown a {
+        display: block;
+        padding: 8px 12px;
+        color: #374151;
+        text-decoration: none;
+        font-size: 14px;
+        transition: background 0.2s ease;
+      }
+
+      .user-dropdown a:hover {
+        background: #f9fafb;
+      }
+
+      /* Navigation */
+      .nav-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .nav-tab {
+        padding: 12px 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        color: #6b6b6b;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+      }
+
+      .nav-tab.active {
+        color: #007bff;
+        border-bottom-color: #007bff;
+      }
+
+      /* Tab Content */
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Upload Section */
+      .upload-section {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 40px;
+        margin-bottom: 30px;
+      }
+
+      .upload-title {
+        font-size: 1.2rem;
+        color: #2c2c2c;
+        margin-bottom: 12px;
+        font-weight: 500;
+      }
+
+      .upload-subtext {
+        font-size: 0.95rem;
+        color: #6b6b6b;
+        margin-bottom: 24px;
+      }
+
+      .file-input {
+        display: none;
+      }
+
+      .upload-button {
+        background: #2c2c2c;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .upload-button:hover {
+        background: #1a1a1a;
+      }
+
+      .file-info {
+        margin-top: 20px;
+        padding: 16px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        text-align: left;
+        display: none;
+      }
+
+      .file-info.show {
+        display: block;
+      }
+
+      .file-info h4 {
+        font-size: 0.9rem;
+        color: #2c2c2c;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+
+      .file-meta {
+        font-size: 0.8rem;
+        color: #6b6b6b;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .transcribe-button {
+        background: #2c2c2c;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        width: 100%;
+      }
+
+      .transcribe-button:hover {
+        background: #1a1a1a;
+      }
+
+      .transcribe-button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+      
+      /* Recording Styles */
+      .upload-options {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .upload-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .upload-divider {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .upload-divider::before,
+      .upload-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e5e7eb;
+      }
+
+      .upload-divider span {
+        padding: 0 15px;
+        color: #6b6b6b;
+        font-size: 0.9rem;
+        background: #f8f9fa;
+      }
+      
+      .record-button {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 150px;
+      }
+      
+      .record-button:hover {
+        background: #c82333;
+        transform: scale(1.02);
+      }
+
+      .record-button.recording {
+        background: #28a745;
+        animation: pulse 1.5s infinite;
+      }
+
+      .recording-status {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .recording-indicator {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 16px;
+        background: rgba(220, 53, 69, 0.1);
+        border-radius: 20px;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+      }
+
+      .recording-dot {
+        width: 12px;
+        height: 12px;
+        background: #dc3545;
+        border-radius: 50%;
+        animation: blink 1s infinite;
+      }
+
+      .stop-record-button {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .stop-record-button:hover {
+        background: #5a6268;
+      }
+
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+
+             @keyframes blink {
+         0%, 50% { opacity: 1; }
+         51%, 100% { opacity: 0.3; }
+       }
+
+      /* Results Sections */
+      .transcription-section, .summary-section {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 40px;
+        margin-bottom: 30px;
+      }
+
+      /* Audio Playback Section */
+      .playback-section {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .playback-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .playback-header:hover {
+        background: #f1f5f9;
+      }
+
+      .playback-header-left {
+        flex: 1;
+      }
+
+      .playback-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 2px;
+      }
+
+      .playback-subtitle {
+        font-size: 12px;
+        color: #6b7280;
+      }
+
+      .collapse-icon {
+        font-size: 16px;
+        color: #6b7280;
+        font-weight: 600;
+        transition: transform 0.2s ease;
+      }
+
+      .playback-content {
+        padding: 20px;
+      }
+
+      .progress-container {
+        margin-bottom: 16px;
+      }
+
+      .progress-bar {
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        margin-bottom: 8px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: #3b82f6;
+        border-radius: 3px;
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .time-display {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .time-text {
+        font-size: 12px;
+        color: #6b7280;
+      }
+
+      .playback-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        gap: 16px;
+      }
+
+      .play-button {
+        width: 48px;
+        height: 48px;
+        background: #3b82f6;
+        border: none;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .play-button:hover {
+        background: #2563eb;
+        transform: scale(1.05);
+      }
+
+      .play-button-text {
+        font-size: 20px;
+        color: white;
+        font-weight: 600;
+      }
+
+      .playback-status {
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 500;
+      }
+
+      .audio-info {
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+      }
+
+      .audio-info-text {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 4px;
+      }
+
+      .audio-info-text:last-child {
+        margin-bottom: 0;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c2c2c;
+      }
+
+      .section-subtitle {
+        font-size: 0.9rem;
+        color: #6b6b6b;
+      }
+
+      .transcription-content, .summary-content {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+        line-height: 1.6;
+      }
+
+      .transcription-text, .summary-text {
+        font-size: 14px;
+        color: #2c2c2c;
+      }
+
+      /* Notes List */
+      .notes-list {
+        display: grid;
+        gap: 20px;
+      }
+
+      .note-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        transition: box-shadow 0.2s ease;
+      }
+
+      .note-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+
+      .note-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+      }
+
+      .note-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c2c2c;
+        margin-bottom: 5px;
+      }
+
+      .note-meta {
+        font-size: 0.85rem;
+        color: #6b6b6b;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .note-category {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .note-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .note-btn {
+        background: none;
+        border: 1px solid #e5e7eb;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+      }
+
+      .note-btn:hover {
+        background: #f8f9fa;
+      }
+
+      .note-btn.delete {
+        color: #dc3545;
+        border-color: #dc3545;
+      }
+
+      .note-btn.delete:hover {
+        background: #dc3545;
+        color: white;
+      }
+
+      .note-preview {
+        font-size: 0.9rem;
+        color: #6b6b6b;
+        line-height: 1.5;
+        margin-bottom: 15px;
+        max-height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+      }
+
+      /* Search */
+      .search-section {
+        margin-bottom: 30px;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+        margin-bottom: 15px;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+
+      /* Search Results */
+      .search-results {
+        display: grid;
+        gap: 20px;
+      }
+
+      .search-results .loading {
+        text-align: center;
+        padding: 20px;
+        color: #6b6b6b;
+      }
+
+      /* Storage Info */
+      .storage-info {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .storage-text {
+        font-size: 14px;
+        color: #6b6b6b;
+      }
+
+      .storage-bar {
+        flex-grow: 1;
+        height: 10px;
+        background-color: #e0e0e0;
+        border-radius: 5px;
+        overflow: hidden;
+      }
+
+      .storage-progress {
+        height: 100%;
+        background-color: #20B2AA; /* Changed to a green color */
+        border-radius: 5px;
+        transition: width 0.3s ease-in-out;
+      }
+
+      /* ThinkSpace Styles */
+      .thinkspace-container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .thinkspace-header {
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+      }
+
+      .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .thinkspace-header h3 {
+        color: #2c2c2c;
+        margin: 0;
+        font-size: 1.5rem;
+      }
+
+      .info-tooltip {
+        font-size: 1rem;
+        color: #6b6b6b;
+        cursor: help;
+        transition: color 0.2s ease;
+      }
+
+      .info-tooltip:hover {
+        color: #2c2c2c;
+      }
+
+      /* Mode Toggle System */
+      .mode-toggles {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .toggle-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .toggle-label {
+        font-size: 0.85rem;
+        color: #6b6b6b;
+        font-weight: 500;
+      }
+
+      .toggle-options {
+        display: flex;
+        background: #f1f3f4;
+        border-radius: 8px;
+        padding: 2px;
+        gap: 2px;
+      }
+
+      .toggle-option {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #6b6b6b;
+        transition: all 0.2s ease;
+      }
+
+      .toggle-option:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .toggle-option.active {
+        background: white;
+        color: #2c2c2c;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .toggle-icon {
+        font-size: 1rem;
+      }
+
+      .toggle-text {
+        font-weight: 500;
+      }
+
+      .chat-container {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8f9fa;
+      }
+
+      .message {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .message.user {
+        align-items: flex-end;
+      }
+
+      .message.system {
+        align-items: flex-start;
+      }
+
+      .message-content {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+
+      .message.user .message-content {
+        background: #007bff;
+        color: white;
+      }
+
+      .message.system .message-content {
+        background: white;
+        color: #2c2c2c;
+        border: 1px solid #e5e7eb;
+      }
+
+      .chat-input-container {
+        display: flex;
+        gap: 10px;
+        padding: 15px;
+        background: white;
+      }
+
+      .chat-input {
+        flex: 1;
+        padding: 12px 40px 12px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.2s ease;
+      }
+
+      .chat-input:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+
+      .send-btn {
+        background: #2c2c2c;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.2s ease;
+      }
+
+      .send-btn:hover {
+        background: #1a1a1a;
+      }
+
+      .send-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      /* Session Actions */
+      .session-actions {
+        display: flex;
+        gap: 10px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-top: 1px solid #e5e7eb;
+        justify-content: center;
+      }
+
+      .session-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #6b6b6b;
+        transition: all 0.2s ease;
+      }
+
+      .session-btn:hover {
+        background: #f1f3f4;
+        border-color: #2c2c2c;
+        color: #2c2c2c;
+      }
+
+      .session-icon {
+        font-size: 1rem;
+      }
+
+      /* Voice Thinking Indicator */
+      .voice-thinking {
+        padding: 15px;
+        background: #f8f9fa;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+      }
+
+      .thinking-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .thinking-icon {
+        font-size: 1.2rem;
+        animation: pulse 2s infinite;
+      }
+
+      .thinking-text {
+        font-size: 0.9rem;
+        color: #6b6b6b;
+        font-weight: 500;
+      }
+
+      .thinking-dots {
+        display: flex;
+        gap: 4px;
+      }
+
+      .dot {
+        width: 6px;
+        height: 6px;
+        background: #6b6b6b;
+        border-radius: 50%;
+        animation: thinking-dots 1.4s infinite;
+      }
+
+      .dot:nth-child(2) { animation-delay: 0.2s; }
+      .dot:nth-child(3) { animation-delay: 0.4s; }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      @keyframes thinking-dots {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+      }
+
+      /* Chat Divider */
+      .chat-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 0;
+      }
+
+      /* Enhanced Input Container */
+      .input-wrapper {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .mic-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        padding: 6px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .mic-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .mic-btn.recording {
+        background: #dc3545;
+        color: white;
+        animation: pulse 1s infinite;
+      }
+
+      .mic-icon {
+        font-size: 1.1rem;
+      }
+
+      /* Replay Button for Voice Responses */
+      .replay-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        background: #f8f9fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: #6b6b6b;
+        margin-top: 8px;
+        transition: all 0.2s ease;
+      }
+
+      .replay-btn:hover {
+        background: #e9ecef;
+        color: #2c2c2c;
+      }
+
+      .replay-icon {
+        font-size: 0.9rem;
+      }
+
+      /* Transcript Display Styles */
+      .transcript-display {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      .transcript-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .transcript-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: #2c2c2c;
+      }
+
+      .transcript-icon {
+        font-size: 1.1rem;
+      }
+
+      .transcript-label {
+        font-size: 0.9rem;
+        color: #6b6b6b;
+      }
+
+      .transcript-filename {
+        font-size: 0.95rem;
+        color: #2c2c2c;
+        font-family: monospace;
+      }
+
+      .transcript-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.8rem;
+        color: #6b6b6b;
+      }
+
+      .transcript-date {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .transcript-time {
+        font-style: italic;
+      }
+
+      .transcript-badges {
+        display: flex;
+        gap: 8px;
+        padding: 12px 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e5e7eb;
+        flex-wrap: wrap;
+      }
+
+      .transcript-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        color: #6b6b6b;
+      }
+
+      .transcript-badge.tag {
+        background: #e3f2fd;
+        border-color: #2196f3;
+        color: #1976d2;
+      }
+
+      .transcript-badge.word-count {
+        background: #f3e5f5;
+        border-color: #9c27b0;
+        color: #7b1fa2;
+      }
+
+      .transcript-badge.time-added {
+        background: #e8f5e8;
+        border-color: #4caf50;
+        color: #388e3c;
+      }
+
+      .transcript-content-wrapper {
+        position: relative;
+      }
+
+      .transcript-content {
+        max-height: 120px; /* Show only first few lines initially */
+        overflow-y: hidden;
+        padding: 20px;
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #2c2c2c;
+        white-space: pre-wrap;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        cursor: pointer;
+        transition: max-height 0.3s ease;
+        position: relative;
+      }
+
+      .transcript-content.expanded {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .transcript-expand-hint {
+        position: absolute;
+        bottom: 8px;
+        right: 20px;
+        font-size: 11px;
+        color: #9ca3af;
+        background: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        border: 1px solid #e5e7eb;
+      }
+
+      .transcript-content.expanded + .transcript-expand-hint {
+        opacity: 0;
+      }
+
+      .transcript-content:hover {
+        background: #f8f9fa;
+      }
+
+      /* Summary Section Styles */
+      .summary-section {
+        margin-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 16px;
+      }
+
+      .summary-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #2c2c2c;
+      }
+
+      .summary-icon {
+        font-size: 16px;
+      }
+
+      .summary-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2c2c2c;
+      }
+
+      .summary-content-wrapper {
+        position: relative;
+      }
+
+      .summary-content {
+        max-height: 80px; /* Show only first few lines initially */
+        overflow-y: hidden;
+        padding: 16px;
+        background: #f8f9fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: #2c2c2c;
+        white-space: pre-wrap;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        cursor: pointer;
+        transition: max-height 0.3s ease;
+        position: relative;
+      }
+
+      .summary-content.expanded {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .summary-expand-hint {
+        position: absolute;
+        bottom: 8px;
+        right: 16px;
+        font-size: 11px;
+        color: #9ca3af;
+        background: #f8f9fa;
+        padding: 4px 8px;
+        border-radius: 4px;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        border: 1px solid #e5e7eb;
+      }
+
+      .summary-content.expanded + .summary-expand-hint {
+        opacity: 0;
+      }
+
+      .summary-content:hover {
+        background: #f1f3f4;
+      }
+
+      /* Rating Buttons */
+      .rating-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .rating-btn {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #e5e7eb;
+        background: white;
+        color: #6b6b6b;
+        border-radius: 50%;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .rating-btn:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+        transform: scale(1.1);
+      }
+
+      .rating-btn:active {
+        transform: scale(0.95);
+      }
+
+      .transcript-content::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .transcript-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+      }
+
+      .transcript-content::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+      }
+
+      .transcript-content::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+
+      .transcript-actions {
+        display: flex;
+        gap: 12px;
+        padding: 16px 20px;
+        background: #f8f9fa;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .transcript-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #6b6b6b;
+        transition: all 0.2s ease;
+      }
+
+      .transcript-btn:hover {
+        background: #f1f3f4;
+        border-color: #2c2c2c;
+        color: #2c2c2c;
+      }
+
+      .transcript-btn.primary {
+        background: #007bff;
+        border-color: #007bff;
+        color: white;
+      }
+
+      .transcript-btn.primary:hover {
+        background: #0056b3;
+        border-color: #0056b3;
+      }
+
+      .btn-icon {
+        font-size: 1rem;
+      }
+
+      .btn-text {
+        font-weight: 500;
+      }
+
+      /* Archive Styles */
+      .archive-container {
+        max-width: 48rem; /* max-w-3xl */
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      .archive-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+      }
+
+      .archive-header h3 {
+        color: #2c2c2c;
+        margin-bottom: 10px;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      .archive-header p {
+        color: #6b6b6b;
+        font-size: 0.95rem;
+      }
+
+      .archive-filters {
+        margin-bottom: 30px;
+      }
+
+      .filter-row {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 20px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+      }
+
+      .search-input {
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+        color: #2c2c2c;
+        transition: border-color 0.2s ease;
+        min-width: 250px;
+        flex: 1;
+        max-width: 400px;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: #2c2c2c;
+      }
+
+      .search-input::placeholder {
+        color: #9ca3af;
+      }
+
+      .tag-filter-container {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .tag-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .tag-chip {
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        font-size: 12px;
+        color: #6b6b6b;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        user-select: none;
+      }
+
+      .tag-chip:hover {
+        background: #f8f9fa;
+        border-color: #d1d5db;
+      }
+
+      .tag-chip.active {
+        background: #2c2c2c;
+        color: white;
+        border-color: #2c2c2c;
+      }
+
+      .tag-chip.active:hover {
+        background: #1a1a1a;
+      }
+
+      .archive-list {
+        display: grid;
+        gap: 1.5rem; /* space-y-6 */
+      }
+
+      .file-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem; /* rounded-md */
+        padding: 24px;
+        transition: box-shadow 0.2s ease;
+      }
+
+      .file-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+
+      .file-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+      }
+
+      .file-title-section {
+        flex: 1;
+        margin-right: 16px;
+      }
+
+      .file-title {
+        font-size: 1.125rem; /* text-lg */
+        font-weight: 600;
+        color: #2c2c2c;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .file-title-input {
+        font-size: 1.125rem; /* text-lg */
+        font-weight: 600;
+        color: #2c2c2c;
+        background: transparent;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem; /* rounded-md */
+        padding: 4px 8px;
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .file-title-input:focus {
+        outline: none;
+        border-color: #2c2c2c;
+      }
+
+      .edit-icon {
+        cursor: pointer;
+        color: #6b6b6b;
+        font-size: 0.875rem; /* text-sm */
+        transition: color 0.2s ease;
+      }
+
+      .edit-icon:hover {
+        color: #2c2c2c;
+      }
+
+      .file-meta {
+        font-size: 0.875rem; /* text-sm */
+        color: #6b6b6b;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .file-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .thinkspace-btn {
+        background: white;
+        color: #2c2c2c;
+        border: 1px solid #e5e7eb;
+        padding: 10px 16px;
+        border-radius: 0.375rem; /* rounded-md */
+        cursor: pointer;
+        font-size: 0.875rem; /* text-sm */
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .thinkspace-btn:hover {
+        background: #f8f9fa;
+        border-color: #2c2c2c;
+      }
+
+      .secondary-btn {
+        background: white;
+        color: #2c2c2c;
+        border: 1px solid #e5e7eb;
+        padding: 8px 12px;
+        border-radius: 0.375rem; /* rounded-md */
+        cursor: pointer;
+        font-size: 0.75rem; /* text-xs */
+        transition: all 0.2s ease;
+      }
+
+      .secondary-btn:hover {
+        background: #f8f9fa;
+        border-color: #2c2c2c;
+      }
+
+      .kebab-menu {
+        position: relative;
+        display: inline-block;
+      }
+
+      .kebab-btn {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        color: #6b6b6b;
+        padding: 4px;
+        border-radius: 4px;
+        transition: color 0.2s ease;
+      }
+
+      .kebab-btn:hover {
+        color: #2c2c2c;
+        background: #f8f9fa;
+      }
+
+      .kebab-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        z-index: 1000;
+        min-width: 150px;
+        display: none;
+      }
+
+      .kebab-dropdown.show {
+        display: block;
+      }
+
+      .kebab-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #2c2c2c;
+        transition: background 0.2s ease;
+      }
+
+      .kebab-item:hover {
+        background: #f8f9fa;
+      }
+
+      .kebab-item.delete {
+        color: #dc3545;
+      }
+
+      .kebab-item.delete:hover {
+        background: #fef2f2;
+      }
+
+      .file-content {
+        margin-bottom: 16px;
+      }
+
+      .transcript-section {
+        margin-bottom: 16px;
+      }
+
+      .transcript-header {
+        margin-bottom: 8px;
+      }
+
+      .transcript-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2c2c2c;
+      }
+
+      .transcript-content {
+        font-size: 0.875rem; /* text-sm */
+        color: #6b6b6b;
+        line-height: 1.5;
+        max-height: 4.5em; /* 3 lines with 1.5 line-height */
+        overflow: hidden;
+        cursor: pointer;
+        transition: max-height 0.3s ease;
+        position: relative;
+        padding: 8px 0;
+      }
+
+      .transcript-content.expanded {
+        max-height: none;
+      }
+
+      .transcript-content::after {
+        content: 'Click to expand';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        font-size: 11px;
+        color: #9ca3af;
+        background: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+
+      .transcript-content.expanded::after {
+        opacity: 0;
+      }
+
+      .transcript-content:hover {
+        background: #f8f9fa;
+        border-radius: 4px;
+        padding: 8px;
+        margin: -8px 0;
+      }
+
+      .summary-section {
+        margin-bottom: 16px;
+      }
+
+      .summary-details {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem; /* rounded-md */
+        overflow: hidden;
+      }
+
+      .summary-toggle {
+        background: #f8f9fa;
+        color: #2c2c2c;
+        cursor: pointer;
+        font-size: 0.875rem; /* text-sm */
+        padding: 12px 16px;
+        border: none;
+        width: 100%;
+        text-align: left;
+        transition: background 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        list-style: none;
+      }
+
+      .summary-toggle:hover {
+        background: #e5e7eb;
+      }
+
+      .summary-toggle::-webkit-details-marker {
+        display: none;
+      }
+
+      .summary-content {
+        font-size: 0.875rem; /* text-sm */
+        color: #6b6b6b;
+        line-height: 1.5;
+        padding: 16px;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .audio-section {
+        margin-bottom: 16px;
+      }
+
+      .audio-container {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem; /* rounded-md */
+        padding: 16px;
+        background: #f8f9fa;
+      }
+
+      .audio-label {
+        font-size: 0.875rem; /* text-sm */
+        font-weight: 500;
+        color: #2c2c2c;
+        margin-bottom: 8px;
+      }
+
+      .custom-audio-player {
+        width: 100%;
+      }
+
+      .audio-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+      }
+
+      .play-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+      }
+
+      .play-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .play-btn:active {
+        transform: scale(0.95);
+      }
+
+      .play-btn.playing {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        box-shadow: 0 2px 8px rgba(240, 147, 251, 0.3);
+      }
+
+      .play-btn.playing:hover {
+        box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+      }
+
+      .audio-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .progress-container {
+        position: relative;
+        margin-bottom: 8px;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 3px;
+        width: 0%;
+        transition: width 0.1s ease;
+        position: relative;
+      }
+
+      .progress-handle {
+        position: absolute;
+        top: 50%;
+        left: 0%;
+        width: 12px;
+        height: 12px;
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        opacity: 0;
+      }
+
+      .progress-bar:hover .progress-handle {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+      }
+
+      .waveform {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 20px;
+        margin-top: 4px;
+      }
+
+      .waveform-bar {
+        flex: 1;
+        background: #e5e7eb;
+        border-radius: 1px;
+        min-height: 4px;
+        max-height: 20px;
+        transition: all 0.3s ease;
+        animation: waveform-animation 2s ease-in-out infinite;
+      }
+
+      .waveform-bar:nth-child(1) { animation-delay: 0s; }
+      .waveform-bar:nth-child(2) { animation-delay: 0.1s; }
+      .waveform-bar:nth-child(3) { animation-delay: 0.2s; }
+      .waveform-bar:nth-child(4) { animation-delay: 0.3s; }
+      .waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+
+      @keyframes waveform-animation {
+        0%, 100% { height: 4px; }
+        50% { height: 20px; }
+      }
+
+      .time-display {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: #6b6b6b;
+        font-family: monospace;
+      }
+
+      .speed-controls {
+        display: flex;
+        align-items: center;
+      }
+
+      .speed-btn {
+        padding: 4px 8px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        color: #6b6b6b;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .speed-btn:hover {
+        background: #f8f9fa;
+        border-color: #667eea;
+        color: #667eea;
+      }
+
+      .speed-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+      }
+
+      .hidden-audio {
+        display: none;
+      }
+
+      .tags-section {
+        margin-bottom: 16px;
+      }
+
+      .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tag {
+        background: #e5e7eb;
+        color: #2c2c2c;
+        padding: 4px 8px;
+        border-radius: 0.375rem; /* rounded-md */
+        font-size: 0.75rem; /* text-xs */
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .tag:hover {
+        background: #d1d5db;
+      }
+
+      .tag.add {
+        background: #f8f9fa;
+        border: 1px dashed #d1d5db;
+        color: #6b6b6b;
+      }
+
+      .tag.add:hover {
+        background: #e5e7eb;
+        color: #2c2c2c;
+      }
+
+      /* Mobile responsive */
+      @media (max-width: 768px) {
+        .filter-row {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 16px;
+        }
+        
+        .search-input {
+          max-width: none;
+          min-width: auto;
+        }
+        
+        .tag-filter-container {
+          min-width: auto;
+        }
+        
+        .tag-chips {
+          justify-content: flex-start;
+        }
+        
+        .file-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        
+        .file-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: #6b6b6b;
+        font-weight: 500;
+      }
+
+      .archive-list {
+        display: grid;
+        gap: 20px;
+      }
+
+      .archive-item {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        transition: box-shadow 0.2s ease;
+        cursor: pointer;
+      }
+
+      .archive-item:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+
+      .archive-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+      }
+
+      .archive-item-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c2c2c;
+        margin-bottom: 5px;
+      }
+
+      .archive-item-meta {
+        font-size: 0.85rem;
+        color: #6b6b6b;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .archive-item-category {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .archive-item-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .archive-btn {
+        background: none;
+        border: 1px solid #e5e7eb;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+      }
+
+      .archive-btn:hover {
+        background: #f8f9fa;
+      }
+
+      .archive-btn.transfer {
+        color: #007bff;
+        border-color: #007bff;
+      }
+
+      .archive-btn.transfer:hover {
+        background: #007bff;
+        color: white;
+      }
+
+      .archive-item-preview {
+        font-size: 0.9rem;
+        color: #6b6b6b;
+        line-height: 1.5;
+        margin-bottom: 15px;
+        max-height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+      }
+
+      .archive-item-summary {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+      }
+
+      .archive-item-summary h4 {
+        font-size: 0.9rem;
+        color: #2c2c2c;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+
+      .archive-item-summary p {
+        font-size: 0.85rem;
+        color: #6b6b6b;
+        line-height: 1.4;
+      }
+
+      .storage-progress .danger {
+        background-color: #dc3545;
+      }
+
+      .storage-progress .warning {
+        background-color: #ffc107;
+      }
+
+      /* Loading and Error States */
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #6b6b6b;
+      }
+
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border: 1px solid #f5c6cb;
+      }
+
+      .success {
+        background: #d4edda;
+        color: #155724;
+        padding: 12px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border: 1px solid #c3e6cb;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .app-container {
+          padding: 20px 15px;
+        }
+        
+        .header {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+        }
+        
+        .nav-tabs {
+          flex-wrap: wrap;
+        }
+        
+        .note-header {
+          flex-direction: column;
+          gap: 10px;
+        }
+        
+        .note-actions {
+          align-self: flex-end;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Authentication Forms -->
+      <div id="authContainer" class="auth-container">
+        <!-- Login Form -->
+        <div id="loginForm" class="auth-form active">
+          <h2 style="text-align: center; margin-bottom: 30px;">Welcome to ClassNote AI</h2>
+          <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label for="loginUsername">Username</label>
+              <input type="text" id="loginUsername" required>
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" required>
+            </div>
+            <button type="submit" class="btn">Login</button>
+          </form>
+          <div class="auth-toggle">
+            <a onclick="showRegister()">Don't have an account? Register</a>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" class="auth-form">
+          <h2 style="text-align: center; margin-bottom: 30px;">Create Account</h2>
+          <form onsubmit="handleRegister(event)">
+            <div class="form-group">
+              <label for="registerUsername">Username</label>
+              <input type="text" id="registerUsername" required>
+            </div>
+            <div class="form-group">
+              <label for="registerEmail">Email</label>
+              <input type="email" id="registerEmail" required>
+            </div>
+            <div class="form-group">
+              <label for="registerPassword">Password</label>
+              <input type="password" id="registerPassword" required minlength="6">
+            </div>
+            <button type="submit" class="btn">Register</button>
+          </form>
+          <div class="auth-toggle">
+            <a onclick="showLogin()">Already have an account? Login</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Application -->
+      <div id="mainApp" class="main-app">
+        <!-- Header -->
+        <div class="header">
+          <div class="header-left">
+            <h1 class="app-title">ClassNote AI</h1>
+          </div>
+          <div class="header-right">
+            <div class="user-menu">
+              <button class="user-button" onclick="toggleUserMenu()">
+                <span class="user-avatar">U</span>
+                <span class="user-name" id="userName">User</span>
+                <span class="dropdown-arrow">▼</span>
+              </button>
+              <div id="userDropdown" class="user-dropdown">
+                <a href="#" onclick="logout()">Logout</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+          <button class="nav-tab active" onclick="showTab('upload')">🎙 Upload Audio</button>
+          <button class="nav-tab" onclick="showTab('archive')">🗃 Archive</button>
+          <button class="nav-tab" onclick="showTab('thinkspace')">🧠 ThinkSpace</button>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="uploadTab" class="tab-content active">
+          <div class="upload-section">
+            <h3 class="upload-title">📤 Upload Audio</h3>
+            <p class="upload-subtext">Upload a file to transcribe and summarize</p>
+            
+            <div class="upload-options">
+              <div class="upload-option">
+              <input type="file" id="audioFile" class="file-input" accept="audio/*">
+              <button class="upload-button" onclick="document.getElementById('audioFile').click()">
+                  ⬆ Choose File
+              </button>
+              </div>
+              
+              <div class="upload-divider">
+                <span>or</span>
+            </div>
+            
+              <div class="upload-option">
+                <button id="recordButton" class="record-button" onclick="toggleRecording()">
+                  🎤 Start Recording
+                </button>
+                <div id="recordingStatus" class="recording-status" style="display: none;">
+                  <div class="recording-indicator">
+                    <div class="recording-dot"></div>
+                    <span id="recordingTime">00:00</span>
+                  </div>
+                  <button id="stopRecordButton" class="stop-record-button" onclick="stopRecording()">
+                  ⏹️ Stop Recording
+                </button>
+              </div>
+              </div>
+            </div>
+            
+            <div id="fileInfo" class="file-info" style="display: none;">
+              <div class="file-preview">
+                <div class="file-details">
+                  <h4 id="fileName" class="file-name"></h4>
+                <div class="file-meta">
+                    <span id="fileSize"></span>
+                    <span id="fileType"></span>
+                </div>
+              </div>
+              </div>
+              <button id="transcribeBtn" class="transcribe-button" onclick="transcribeAudio()">
+                ▶ Process Audio
+              </button>
+            </div>
+          </div>
+
+          <!-- Results Sections -->
+          <div id="transcriptionSection" class="transcription-section" style="display: none;">
+            <div class="section-header">
+              <div class="section-title">Transcription</div>
+              <div class="section-subtitle">AI-generated text from your audio</div>
+            </div>
+            <div class="transcription-content">
+              <div id="transcriptionText" class="transcription-text"></div>
+            </div>
+            </div>
+            
+          <div id="summarySection" class="summary-section" style="display: none;">
+            <div class="section-header">
+              <div class="section-title">Summary</div>
+              <div class="section-subtitle">Key points and insights</div>
+            </div>
+            <div class="transcription-content">
+              <div id="summaryText" class="transcription-text"></div>
+            </div>
+            </div>
+            
+          <!-- Audio Playback Section - Only show after processing -->
+          <div id="playbackSection" class="playback-section" style="display: none;">
+            <div class="playback-header" onclick="togglePlaybackCollapse()">
+              <div class="playback-header-left">
+                <div class="playback-title">🎵 Audio Playback</div>
+                <div class="playback-subtitle" id="playbackSubtitle">Tap to collapse</div>
+              </div>
+              <div class="collapse-icon" id="collapseIcon">▲</div>
+            </div>
+            
+            <div id="playbackContent" class="playback-content">
+              <div class="audio-container">
+                <div class="audio-label">🎧 Playback</div>
+                <div class="custom-audio-player" id="homeAudioPlayer">
+                  <div class="audio-controls">
+                    <button class="play-btn" id="homePlayBtn" onclick="toggleHomePlay()">
+                      <span class="play-icon">▶</span>
+                      <span class="pause-icon" style="display: none;">⏸</span>
+                    </button>
+                    <div class="audio-info">
+                      <div class="progress-container">
+                        <div class="progress-bar" onclick="seekHomeAudio(event)">
+                          <div class="progress-fill" id="homeProgressFill"></div>
+                        </div>
+                        <div class="waveform">
+                          <div class="waveform-bar"></div>
+                          <div class="waveform-bar"></div>
+                          <div class="waveform-bar"></div>
+                          <div class="waveform-bar"></div>
+                          <div class="waveform-bar"></div>
+                        </div>
+                      </div>
+                      <div class="time-display">
+                        <span class="current-time" id="homeCurrentTime">0:00</span>
+                        <span class="duration" id="homeDuration">0:00</span>
+                      </div>
+                    </div>
+                    <div class="speed-controls">
+                      <button class="speed-btn" id="homeSpeedBtn" onclick="toggleHomeSpeed()">1x</button>
+                    </div>
+                  </div>
+                  <audio class="hidden-audio" id="homeAudio" preload="metadata">
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Archive Tab -->
+        <div id="archiveTab" class="tab-content">
+          <div class="archive-container">
+            <div class="archive-header">
+              <h3>📚 Archive – Your Learning Collection</h3>
+              <p>Browse and manage your saved notes, summaries, and learning materials.</p>
+            </div>
+            
+            <div class="archive-filters">
+              <div class="filter-row">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search your notes..." oninput="searchArchive()">
+                
+                <div class="tag-filter-container">
+                  <div class="tag-chips" id="tagChips">
+                    <!-- Tag chips will be dynamically populated here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="archiveList" class="archive-list">
+              <!-- Archive items will be loaded here -->
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- ThinkSpace Tab -->
+        <div id="thinkspaceTab" class="tab-content">
+          <div class="thinkspace-container">
+            <div class="thinkspace-header">
+              <div class="header-content">
+                <h3>🧠 ThinkSpace - Socrates Dialogue</h3>
+                <div class="info-tooltip" title="Ask questions and explore your notes through guided Socratic dialogue with Socrates">ℹ️</div>
+              </div>
+            </div>
+            
+            <!-- Mode Toggle System -->
+            <div class="mode-toggles">
+              <div class="toggle-group">
+                <label class="toggle-label">Input Mode:</label>
+                <div class="toggle-options">
+                  <button class="toggle-option" id="voiceInputToggle" onclick="toggleInputMode('voice')">
+                    <span class="toggle-icon">🎤</span>
+                    <span class="toggle-text">Voice</span>
+                  </button>
+                  <button class="toggle-option active" id="textInputToggle" onclick="toggleInputMode('text')">
+                    <span class="toggle-icon">💬</span>
+                    <span class="toggle-text">Text</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="toggle-group">
+                <label class="toggle-label">Output Mode:</label>
+                <div class="toggle-options">
+                  <button class="toggle-option active" id="voiceOutputToggle" onclick="toggleOutputMode('voice')">
+                    <span class="toggle-icon">🗣️</span>
+                    <span class="toggle-text">Voice</span>
+                  </button>
+                  <button class="toggle-option" id="textOutputToggle" onclick="toggleOutputMode('text')">
+                    <span class="toggle-icon">📄</span>
+                    <span class="toggle-text">Text</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-container">
+              <!-- Transcript Display Area -->
+              <div id="transcriptDisplay" class="transcript-display" style="display: none;">
+                <div class="transcript-header">
+                  <div class="transcript-title">
+                    <span class="transcript-icon">📄</span>
+                    <span class="transcript-label">Transcript:</span>
+                    <span class="transcript-filename" id="transcriptFilename"></span>
+                  </div>
+                  <div class="transcript-meta">
+                    <span class="transcript-date" id="transcriptDate"></span>
+                    <span class="transcript-time" id="transcriptTime"></span>
+                  </div>
+                </div>
+                
+                <div class="transcript-badges" id="transcriptBadges">
+                  <!-- Tags and metadata will be populated here -->
+                </div>
+                
+                <div class="transcript-content-wrapper">
+                  <div class="transcript-content" id="transcriptContent" onclick="toggleTranscriptDisplay()">
+                    <!-- Transcript text will be populated here -->
+                  </div>
+                  <div class="transcript-expand-hint">Click to expand/collapse transcript</div>
+                </div>
+                
+                <!-- Summary Section -->
+                <div id="summarySection" class="summary-section" style="display: none;">
+                  <div class="summary-header">
+                    <span class="summary-icon">📝</span>
+                    <span class="summary-label">Summary:</span>
+                  </div>
+                  <div class="summary-content-wrapper">
+                    <div class="summary-content" id="summaryContent" onclick="toggleSummaryDisplay()">
+                      <!-- Summary text will be populated here -->
+                    </div>
+                    <div class="summary-expand-hint">Click to expand/collapse summary</div>
+                  </div>
+                </div>
+                
+                <div class="transcript-actions">
+                  <button class="transcript-btn" id="summarizeBtn" onclick="summarizeTranscript()">
+                    <span class="btn-icon">📝</span>
+                    <span class="btn-text">Summarize this Transcript</span>
+                  </button>
+                  <button class="transcript-btn primary" id="startDialogueBtn" onclick="startTranscriptDialogue()">
+                    <span class="btn-icon">🧠</span>
+                    <span class="btn-text">Start ThinkSpace Dialogue</span>
+                  </button>
+                </div>
+              </div>
+
+              <div id="chatMessages" class="chat-messages">
+                <!-- Messages will be dynamically populated by JavaScript -->
+              </div>
+
+              <!-- Session Actions (hidden by default) -->
+              <div id="sessionActions" class="session-actions" style="display: none;">
+                <button class="session-btn" onclick="saveToArchive()">
+                  <span class="session-icon">📂</span>
+                  <span class="session-text">Save to Archive</span>
+                </button>
+                <button class="session-btn" onclick="pinSessionSummary()">
+                  <span class="session-icon">📌</span>
+                  <span class="session-text">Pin Session Summary</span>
+                </button>
+                <button class="session-btn" onclick="endSession()">
+                  <span class="session-icon">🔚</span>
+                  <span class="session-text">End Socrates Session</span>
+                </button>
+              </div>
+
+              <!-- Voice Thinking Indicator -->
+              <div id="voiceThinking" class="voice-thinking" style="display: none;">
+                <div class="thinking-content">
+                  <span class="thinking-icon">🧠</span>
+                  <span class="thinking-text">Socrates is thinking...</span>
+                  <div class="thinking-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chat-divider"></div>
+
+              <div class="chat-input-container">
+                <div class="input-wrapper">
+                  <input type="text" id="chatInput" class="chat-input" placeholder="Ask a question or share your thoughts..." onkeypress="handleChatKeyPress(event)">
+                  <button id="micBtn" class="mic-btn" onclick="toggleVoiceRecording()" style="display: none;">
+                    <span class="mic-icon">🎤</span>
+                  </button>
+                </div>
+                <button id="sendBtn" class="send-btn" onclick="sendMessage()">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Storage Info -->
+        <div class="storage-info" id="storageInfo">
+          <span class="storage-text">Storage: <span id="storageUsed">0 MB</span> / <span id="storageLimit">250 MB</span></span>
+          <div class="storage-bar">
+            <div class="storage-progress" id="storageProgress"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Global variables
+      let currentUser = null;
+      let authToken = null;
+      let currentFile = null;
+      let transcriptionData = null;
+      let summaryData = null;
+      let currentNoteId = null;
+      
+      // Socratic Dialogue System Variables
+      let isContextual = false;
+      let sessionContext = null;
+      let questionTier = 1;
+      let sessionHistory = [];
+      let socraticStrategies = ['elenchus', 'aporia', 'maieutics', 'dialectical', 'synthesis'];
+      let currentStrategy = 'elenchus';
+      
+      // Recording variables
+      let mediaRecorder = null;
+      let audioChunks = [];
+      let recordingStartTime = null;
+      let recordingTimer = null;
+      let isRecording = false;
+
+      // API Base URL
+      const API_BASE = 'http://localhost:3001';
+
+      // Socratic Dialogue Helper Functions
+      function applySocraticStrategy(userInput, strategy) {
+        const strategies = {
+          elenchus: {
+            pattern: 'refutation',
+            approach: 'expose contradictions or vagueness',
+            examples: [
+              'You say {concept} means {definition}. But could {counter_example}?',
+              'If {premise} is true, then {contradiction} must also be true. How do you reconcile this?',
+              'You\'ve stated {claim}, but earlier you said {contradictory_claim}. Which position do you hold?'
+            ]
+          },
+          aporia: {
+            pattern: 'confusion',
+            approach: 'cultivate doubt as progress',
+            examples: [
+              'It seems both positions can\'t hold simultaneously. How do we move forward from this uncertainty?',
+              'You\'ve reached an interesting contradiction. What does this confusion tell us about the nature of {concept}?',
+              'This creates a puzzle. How might we resolve this apparent conflict in your thinking?'
+            ]
+          },
+          maieutics: {
+            pattern: 'midwifery',
+            approach: 'draw out insight from user\'s own words',
+            examples: [
+              'You\'ve just said {user_statement}. Then is {logical_extension} also true?',
+              'Based on your own reasoning, {implication}. Does this follow from what you\'ve expressed?',
+              'You\'ve described {concept} as {description}. What deeper principle underlies this understanding?'
+            ]
+          },
+          dialectical: {
+            pattern: 'analogy',
+            approach: 'use examples and analogies',
+            examples: [
+              'If {analogy_example}, then might {concept} also {similar_pattern}?',
+              'Consider this: {analogy}. How does this relate to your understanding of {concept}?',
+              'In {domain}, we see {pattern}. Could {concept} follow a similar logic?'
+            ]
+          },
+          synthesis: {
+            pattern: 'integration',
+            approach: 'propose new hypothesis based on dialogue',
+            examples: [
+              'So based on our discussion, how would you now define {concept} in your own words?',
+              'Given what we\'ve explored, what new understanding have you reached about {topic}?',
+              'How has your thinking evolved through this conversation?'
+            ]
+          }
+        };
+        
+        return strategies[strategy] || strategies.elenchus;
+      }
+
+      function getNextQuestionTier(sessionHistory) {
+        if (sessionHistory.length === 0) return 1;
+        
+        const lastTier = sessionHistory[sessionHistory.length - 1].tier || 1;
+        const nextTier = (lastTier % 5) + 1;
+        
+        return nextTier;
+      }
+
+      function transformToMaieutic(userStatement) {
+        // Extract key concepts from user statement for maieutic questioning
+        const concepts = userStatement.toLowerCase().match(/\b(?:freedom|justice|truth|knowledge|good|beauty|love|power|meaning|purpose|reality|consciousness|morality|existence|reason|experience|theory|practice|body|mind|soul|nature|culture|society|individual|collective|change|permanence|reduction|philosophy|tailor|jacket|body|theory|experience)\b/g) || [];
+        
+        if (concepts.length > 0) {
+          const concept = concepts[0];
+          return `You've mentioned ${concept}. What do you mean when you say ${concept}?`;
+        }
+        
+        return 'What do you mean by that exactly?';
+      }
+
+      function selectSocraticStrategy(userInput, sessionHistory) {
+        // Analyze user input to determine appropriate strategy
+        const input = userInput.toLowerCase();
+        
+        // If user is confused or uncertain, use aporia
+        if (input.includes('confused') || input.includes('uncertain') || input.includes('don\'t know') || input.includes('not sure')) {
+          return 'aporia';
+        }
+        
+        // If user is making a claim, use elenchus to test it
+        if (input.includes('is') || input.includes('are') || input.includes('means') || input.includes('because')) {
+          return 'elenchus';
+        }
+        
+        // If user is asking for clarification, use maieutics
+        if (input.includes('what do you mean') || input.includes('explain') || input.includes('how')) {
+          return 'maieutics';
+        }
+        
+        // If session is getting long, move toward synthesis
+        if (sessionHistory.length > 3) {
+          return 'synthesis';
+        }
+        
+        // Default to dialectical for variety
+        return 'dialectical';
+      }
+
+      function generateSocraticQuestion(userInput, strategy, tier, isContextual, context) {
+        const strategyInfo = applySocraticStrategy(userInput, strategy);
+        const tierQuestions = {
+          1: 'What do you mean by that exactly?',
+          2: 'Why do you think this holds true?',
+          3: 'If this is true, what must follow?',
+          4: 'Could someone disagree with this and still be reasonable?',
+          5: 'How would you now summarize your own view?'
+        };
+        
+        let question = tierQuestions[tier];
+        
+        // Enhance with contextual information if available
+        if (isContextual && context) {
+          if (context.transcript && context.transcript.toLowerCase().includes('reduction')) {
+            question = `In the context of reduction as "being led back," ${question.toLowerCase()}`;
+          }
+          if (context.transcript && context.transcript.toLowerCase().includes('tailor')) {
+            question = `Considering the tailor analogy from your transcript, ${question.toLowerCase()}`;
+          }
+        }
+        
+        return question;
+      }
+
+      // Check authentication on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        checkAuth();
+        initializeSocratesVoice();
+      });
+
+      // Initialize Socrates's voice system
+      function initializeSocratesVoice() {
+        if ('speechSynthesis' in window) {
+          // Wait for voices to load
+          speechSynthesis.onvoiceschanged = function() {
+            const voices = speechSynthesis.getVoices();
+            console.log('Available voices for Socrates:', voices.map(v => v.name));
+            
+            // Test voice selection
+            const idealVoices = [
+              'Google en-US-Wavenet-F',
+              'Google UK English Female',
+              'Samantha',
+              'Victoria',
+              'Microsoft Eva',
+              'Microsoft Zira',
+              'Female'
+            ];
+            
+            let selectedVoice = null;
+            for (const voiceName of idealVoices) {
+              selectedVoice = voices.find(voice => 
+                voice.name.includes(voiceName) || 
+                (voiceName === 'Female' && voice.name.toLowerCase().includes('female'))
+              );
+              if (selectedVoice) {
+                console.log('Socrates voice initialized:', selectedVoice.name);
+                break;
+              }
+            }
+            
+            if (!selectedVoice) {
+              console.log('No ideal female voice found for Socrates');
+            }
+          };
+          
+          // Trigger voice loading
+          speechSynthesis.getVoices();
+        }
+      }
+
+      // Authentication functions
+      function checkAuth() {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          authToken = token;
+          // Verify token is still valid
+          fetch(`${API_BASE}/auth/profile`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error('Invalid token');
+            }
+          })
+          .then(data => {
+            currentUser = data.user;
+            showMainApp();
+          })
+          .catch(error => {
+            console.error('Auth check failed:', error);
+            logout();
+          });
+        } else {
+          showAuth();
+        }
+      }
+
+      function showAuth() {
+        document.getElementById('authContainer').style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+      }
+
+      function showMainApp() {
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('userName').textContent = currentUser.username;
+        loadNotes();
+        loadStorageInfo();
+        
+        // Initialize ThinkSpace for general inquiry mode
+        initializeThinkSpace();
+      }
+
+      // Storage management functions
+      async function loadStorageInfo() {
+        try {
+          const response = await fetch(`${API_BASE}/storage`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            updateStorageDisplay(data.storage);
+          }
+        } catch (error) {
+          console.error('Failed to load storage info:', error);
+        }
+      }
+
+      function updateStorageDisplay(storage) {
+        const usedMB = (storage.used_storage / 1024 / 1024).toFixed(1);
+        const limitMB = (storage.storage_limit_bytes / 1024 / 1024).toFixed(1);
+        const percentage = (storage.used_storage / storage.storage_limit_bytes) * 100;
+
+        document.getElementById('storageUsed').textContent = `${usedMB} MB`;
+        document.getElementById('storageLimit').textContent = `${limitMB} MB`;
+
+        const progressBar = document.getElementById('storageProgress');
+        progressBar.style.width = `${percentage}%`;
+
+        // Update progress bar color based on usage
+        progressBar.className = 'storage-progress';
+        if (percentage > 80) {
+          progressBar.classList.add('danger');
+        } else if (percentage > 60) {
+          progressBar.classList.add('warning');
+        }
+      }
+
+      async function checkStorageLimit(fileSize) {
+        try {
+          const response = await fetch(`${API_BASE}/storage`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const storage = data.storage;
+            const newTotalSize = storage.used_storage + fileSize;
+            
+            return {
+              canUpload: newTotalSize <= storage.storage_limit_bytes,
+              currentUsage: storage.used_storage,
+              limit: storage.storage_limit_bytes,
+              remaining: storage.remaining_storage
+            };
+          }
+        } catch (error) {
+          console.error('Failed to check storage limit:', error);
+        }
+        return { canUpload: true }; // Allow upload if check fails
+      }
+
+      function showLogin() {
+        document.getElementById('loginForm').classList.add('active');
+        document.getElementById('registerForm').classList.remove('active');
+      }
+
+      function showRegister() {
+        document.getElementById('loginForm').classList.remove('active');
+        document.getElementById('registerForm').classList.add('active');
+      }
+
+      async function handleLogin(event) {
+        event.preventDefault();
+        
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+          const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            authToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem('authToken', data.token);
+            showMainApp();
+          } else {
+            showError(data.error);
+          }
+        } catch (error) {
+          showError('Login failed. Please try again.');
+        }
+      }
+
+      async function handleRegister(event) {
+        event.preventDefault();
+        
+        const username = document.getElementById('registerUsername').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+
+        try {
+          const response = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            authToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem('authToken', data.token);
+            showMainApp();
+          } else {
+            showError(data.error);
+          }
+        } catch (error) {
+          showError('Registration failed. Please try again.');
+        }
+      }
+
+      function logout() {
+        localStorage.removeItem('authToken');
+        authToken = null;
+        currentUser = null;
+        showAuth();
+      }
+
+      // Tab navigation
+      function showTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(tabName + 'Tab').classList.add('active');
+
+        // Load data for specific tabs
+        if (tabName === 'archive') {
+          loadArchive();
+        } else if (tabName === 'thinkspace') {
+          // Initialize ThinkSpace for general inquiry if no transcript is loaded
+          if (!isContextual) {
+            initializeThinkSpace();
+          }
+        }
+      }
+
+      // File handling
+      document.getElementById('audioFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          currentFile = file;
+          displayFileInfo(file);
+        }
+      });
+
+      function displayFileInfo(file) {
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileType = document.getElementById('fileType');
+
+        fileName.textContent = file.name;
+        fileSize.textContent = `Size: ${formatFileSize(file.size)}`;
+        fileType.textContent = `Type: ${file.type}`;
+
+        fileInfo.style.display = 'block';
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      // Recording functions
+      async function toggleRecording() {
+        if (isRecording) {
+          stopRecording();
+            } else {
+          startRecording();
+        }
+      }
+
+      async function startRecording() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+          
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioFile = new File([audioBlob], `recording_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.wav`, {
+              type: 'audio/wav'
+            });
+            
+            currentFile = audioFile;
+            displayFileInfo(audioFile);
+            
+            // Stop all tracks
+            stream.getTracks().forEach(track => track.stop());
+          };
+          
+          mediaRecorder.start();
+          isRecording = true;
+          recordingStartTime = Date.now();
+          
+          // Update UI
+          const recordButton = document.getElementById('recordButton');
+          const recordingStatus = document.getElementById('recordingStatus');
+          
+          recordButton.textContent = '🎤 Recording...';
+          recordButton.classList.add('recording');
+          recordingStatus.style.display = 'flex';
+          
+          // Start timer
+          startRecordingTimer();
+          
+          showSuccess('Recording started! Click "Stop Recording" when done.');
+          
+        } catch (error) {
+          console.error('Error starting recording:', error);
+          showError('Failed to start recording. Please check microphone permissions.');
+        }
+      }
+      
+      function stopRecording() {
+        if (mediaRecorder && isRecording) {
+          mediaRecorder.stop();
+          isRecording = false;
+          
+          // Update UI
+          const recordButton = document.getElementById('recordButton');
+          const recordingStatus = document.getElementById('recordingStatus');
+          
+          recordButton.textContent = '🎤 Start Recording';
+          recordButton.classList.remove('recording');
+          recordingStatus.style.display = 'none';
+          
+          // Stop timer
+          stopRecordingTimer();
+          
+          showSuccess('Recording stopped! Your audio is ready to process.');
+        }
+      }
+      
+      function startRecordingTimer() {
+        recordingTimer = setInterval(() => {
+          const elapsed = Date.now() - recordingStartTime;
+          const minutes = Math.floor(elapsed / 60000);
+          const seconds = Math.floor((elapsed % 60000) / 1000);
+          document.getElementById('recordingTime').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+      }
+      
+      function stopRecordingTimer() {
+        if (recordingTimer) {
+          clearInterval(recordingTimer);
+          recordingTimer = null;
+        }
+      }
+      
+      // Audio processing
+      async function transcribeAudio() {
+        if (!currentFile) {
+          showError('Please select a file first');
+          return;
+        }
+
+        // Check storage limit before uploading
+        const storageCheck = await checkStorageLimit(currentFile.size);
+        if (!storageCheck.canUpload) {
+          const usedMB = (storageCheck.currentUsage / 1024 / 1024).toFixed(1);
+          const limitMB = (storageCheck.limit / 1024 / 1024).toFixed(1);
+          showError(`Storage limit exceeded! You have used ${usedMB} MB of ${limitMB} MB. Please delete some files to free up space.`);
+          return;
+        }
+        
+        const transcribeBtn = document.getElementById('transcribeBtn');
+        transcribeBtn.disabled = true;
+        transcribeBtn.textContent = 'Processing...';
+        
+        const formData = new FormData();
+        formData.append('audio', currentFile);
+        
+        try {
+          // Transcribe
+          const transcribeResponse = await fetch(`${API_BASE}/transcribe`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            },
+            body: formData
+          });
+          
+          const transcribeData = await transcribeResponse.json();
+          
+          if (transcribeResponse.ok) {
+            transcriptionData = transcribeData;
+            currentNoteId = transcribeData.noteId;
+            displayTranscription(transcribeData.text);
+            
+            // Generate summary
+            const summaryResponse = await fetch(`${API_BASE}/summarize`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+              },
+              body: JSON.stringify({ 
+                text: transcribeData.text,
+                noteId: currentNoteId
+              })
+            });
+            
+            const summaryData = await summaryResponse.json();
+            
+            if (summaryResponse.ok) {
+              displaySummary(summaryData.summary);
+              showPlaybackSection(); // Show audio playback section
+              showSuccess('Audio processed successfully! Note saved.');
+              loadStorageInfo(); // Refresh storage info after successful upload
+            } else {
+              showError('Summary generation failed: ' + summaryData.error);
+            }
+          } else {
+            showError('Transcription failed: ' + transcribeData.error);
+          }
+        } catch (error) {
+          console.error('Processing error:', error);
+          showError('Failed to process audio. Please try again.');
+        } finally {
+          transcribeBtn.disabled = false;
+          transcribeBtn.textContent = 'Process Audio';
+        }
+      }
+
+      function displayTranscription(text) {
+        document.getElementById('transcriptionText').textContent = text;
+        document.getElementById('transcriptionSection').style.display = 'block';
+      }
+
+      function displaySummary(text) {
+        document.getElementById('summaryText').textContent = text;
+        document.getElementById('summarySection').style.display = 'block';
+      }
+
+      // Audio Playback Functions
+      let isPlaybackCollapsed = false;
+      let homeAudioPlayer = null;
+      let homeAudioUrl = null;
+
+      function showPlaybackSection() {
+        document.getElementById('playbackSection').style.display = 'block';
+        
+        // Create audio player from the uploaded file
+        if (currentFile && !homeAudioPlayer) {
+          homeAudioUrl = URL.createObjectURL(currentFile);
+          homeAudioPlayer = new Audio(homeAudioUrl);
+          
+          // Set up audio event listeners for home page
+          setupHomeAudioEventListeners(homeAudioPlayer);
+        }
+      }
+
+      function togglePlaybackCollapse() {
+        isPlaybackCollapsed = !isPlaybackCollapsed;
+        const content = document.getElementById('playbackContent');
+        const subtitle = document.getElementById('playbackSubtitle');
+        const icon = document.getElementById('collapseIcon');
+        
+        if (isPlaybackCollapsed) {
+          content.style.display = 'none';
+          subtitle.textContent = 'Tap to expand';
+          icon.textContent = '▼';
+        } else {
+          content.style.display = 'block';
+          subtitle.textContent = 'Tap to collapse';
+          icon.textContent = '▲';
+        }
+      }
+
+      function setupHomeAudioEventListeners(audioElement) {
+        const playBtn = document.getElementById('homePlayBtn');
+        const progressFill = document.getElementById('homeProgressFill');
+        const currentTimeSpan = document.getElementById('homeCurrentTime');
+        const durationSpan = document.getElementById('homeDuration');
+        const waveform = document.querySelector('#homeAudioPlayer .waveform');
+
+        // Format time helper
+        function formatTime(seconds) {
+          const mins = Math.floor(seconds / 60);
+          const secs = Math.floor(seconds % 60);
+          return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+          const progress = (audioElement.currentTime / audioElement.duration) * 100;
+          progressFill.style.width = `${progress}%`;
+          currentTimeSpan.textContent = formatTime(audioElement.currentTime);
+        }
+
+        // Update duration when metadata is loaded
+        audioElement.addEventListener('loadedmetadata', () => {
+          durationSpan.textContent = formatTime(audioElement.duration);
+        });
+
+        // Update progress during playback
+        audioElement.addEventListener('timeupdate', updateProgress);
+
+        // Handle play/pause
+        audioElement.addEventListener('play', () => {
+          playBtn.classList.add('playing');
+          playBtn.querySelector('.play-icon').style.display = 'none';
+          playBtn.querySelector('.pause-icon').style.display = 'inline';
+          waveform.style.animationPlayState = 'running';
+        });
+
+        audioElement.addEventListener('pause', () => {
+          playBtn.classList.remove('playing');
+          playBtn.querySelector('.play-icon').style.display = 'inline';
+          playBtn.querySelector('.pause-icon').style.display = 'none';
+          waveform.style.animationPlayState = 'paused';
+        });
+
+        audioElement.addEventListener('ended', () => {
+          playBtn.classList.remove('playing');
+          playBtn.querySelector('.play-icon').style.display = 'inline';
+          playBtn.querySelector('.pause-icon').style.display = 'none';
+          waveform.style.animationPlayState = 'paused';
+        });
+
+        audioElement.addEventListener('error', (e) => {
+          console.error('Audio playback error:', e);
+          showError('Failed to load audio for playback');
+        });
+      }
+
+      function toggleHomePlay() {
+        if (!homeAudioPlayer) {
+          showError('No audio file available for playback');
+          return;
+        }
+        
+        if (homeAudioPlayer.paused) {
+          homeAudioPlayer.play();
+        } else {
+          homeAudioPlayer.pause();
+        }
+      }
+
+      function seekHomeAudio(event) {
+        if (!homeAudioPlayer) return;
+        
+        const progressBar = event.currentTarget;
+        const rect = progressBar.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const progress = (clickX / rect.width) * 100;
+        const newTime = (progress / 100) * homeAudioPlayer.duration;
+        homeAudioPlayer.currentTime = newTime;
+      }
+
+      function toggleHomeSpeed() {
+        if (!homeAudioPlayer) return;
+        
+        const speedBtn = document.getElementById('homeSpeedBtn');
+        const speeds = [1, 1.5, 2];
+        const currentSpeed = homeAudioPlayer.playbackRate;
+        const currentIndex = speeds.indexOf(currentSpeed);
+        const nextIndex = (currentIndex + 1) % speeds.length;
+        const newSpeed = speeds[nextIndex];
+        
+        homeAudioPlayer.playbackRate = newSpeed;
+        speedBtn.textContent = `${newSpeed}x`;
+        
+        // Update active state
+        speedBtn.classList.remove('active');
+        if (newSpeed !== 1) {
+          speedBtn.classList.add('active');
+        }
+      }
+
+      function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+
+      // Notes management
+      async function loadNotes() {
+        try {
+          const response = await fetch(`${API_BASE}/notes`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            displayNotes(data.notes);
+          } else {
+            showError('Failed to load notes');
+          }
+        } catch (error) {
+          console.error('Load notes error:', error);
+          showError('Failed to load notes');
+        }
+      }
+
+      function displayNotes(notes) {
+        const notesList = document.getElementById('notesList');
+        
+        if (notes.length === 0) {
+          notesList.innerHTML = '<div class="loading">No notes yet. Upload an audio file to get started!</div>';
+          return;
+        }
+
+        notesList.innerHTML = notes.map(note => `
+          <div class="note-card">
+            <div class="note-header">
+              <div>
+                <div class="note-title">${note.title}</div>
+                <div class="note-meta">
+                  <span>${new Date(note.created_at).toLocaleDateString()}</span>
+                  <span>${formatFileSize(note.file_size || 0)}</span>
+                  ${note.category_name ? `<span class="note-category">${note.category_name}</span>` : ''}
+                </div>
+              </div>
+              <div class="note-actions">
+                <button class="note-btn" onclick="viewNote(${note.id})">View</button>
+                <button class="note-btn delete" onclick="deleteNote(${note.id})">Delete</button>
+              </div>
+            </div>
+            <div class="note-preview">
+              ${note.transcription_text ? note.transcription_text.substring(0, 150) + '...' : 'No transcription available'}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      async function deleteNote(noteId) {
+        if (!confirm('Are you sure you want to delete this note?')) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE}/notes/${noteId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          if (response.ok) {
+            showSuccess('Note deleted successfully');
+            loadNotes();
+            loadStorageInfo(); // Refresh storage info after deletion
+          } else {
+            const data = await response.json();
+            showError('Failed to delete note: ' + data.error);
+          }
+        } catch (error) {
+          console.error('Delete note error:', error);
+          showError('Failed to delete note');
+        }
+      }
+
+      function viewNote(noteId) {
+        // For now, just show a simple view
+        // In a full implementation, this would open a detailed view modal
+        alert('Note viewing feature coming soon!');
+      }
+
+
+
+      // Utility functions
+      function showError(message) {
+        const error = document.createElement('div');
+        error.className = 'error';
+        error.textContent = message;
+        document.querySelector('.app-container').insertBefore(error, document.querySelector('.app-container').firstChild);
+        
+        setTimeout(() => {
+          error.remove();
+        }, 5000);
+      }
+
+      function showSuccess(message) {
+        const success = document.createElement('div');
+        success.className = 'success';
+        success.textContent = message;
+        document.querySelector('.app-container').insertBefore(success, document.querySelector('.app-container').firstChild);
+        
+        setTimeout(() => {
+          success.remove();
+        }, 5000);
+      }
+
+      // Archive Features
+      let archiveData = [];
+
+      async function loadArchive() {
+        try {
+          const response = await fetch(`${API_BASE}/notes`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            archiveData = data.notes;
+            displayArchive(archiveData);
+            // Initialize tag filter options and audio players after displaying notes
+            setTimeout(() => {
+              updateTagFilterOptions();
+              initializeAudioPlayers();
+            }, 100);
+        } else {
+            showError('Failed to load archive');
+          }
+        } catch (error) {
+          console.error('Load archive error:', error);
+          showError('Failed to load archive');
+        }
+      }
+
+      function displayArchive(notes) {
+        const archiveList = document.getElementById('archiveList');
+        
+        if (notes.length === 0) {
+          archiveList.innerHTML = '<div class="loading">No notes in your archive yet. Upload an audio file to get started!</div>';
+          return;
+        }
+
+        archiveList.innerHTML = notes.map(note => `
+          <div class="file-card" data-note-id="${note.id}">
+            <div class="file-header">
+              <div class="file-title-section">
+                <div class="file-title">
+                  <span class="title-text">${note.title}</span>
+                  <span class="edit-icon" onclick="editNoteTitle(${note.id}, '${note.title.replace(/'/g, "\\'")}')">✏️</span>
+                </div>
+                <div class="file-meta">
+                  <span>📅 ${new Date(note.created_at).toLocaleDateString()}</span>
+                  <span>📁 ${formatFileSize(note.file_size || 0)}</span>
+                  ${note.category_name ? `<span>🏷️ ${note.category_name}</span>` : ''}
+                </div>
+              </div>
+              <div class="file-actions">
+                <button class="thinkspace-btn" onclick="transferToThinkSpace(${note.id})">
+                  🧠 Send to ThinkSpace
+                </button>
+                <div class="kebab-menu">
+                  <button class="kebab-btn" onclick="toggleKebabMenu(${note.id})">⋯</button>
+                  <div class="kebab-dropdown" id="kebab-${note.id}">
+                    <div class="kebab-item" onclick="exportNote(${note.id})">📤 Export</div>
+                    <div class="kebab-item delete" onclick="deleteNote(${note.id})">🗑️ Delete</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="file-content">
+              <div class="transcript-section">
+                <div class="transcript-header">
+                  <span class="transcript-title">Transcript</span>
+                </div>
+                <div class="transcript-content" id="transcript-${note.id}" onclick="toggleTranscript(${note.id})">
+                  ${note.transcription_text || 'No transcription available'}
+                </div>
+              </div>
+              
+              ${note.summary_text ? `
+                <div class="summary-section">
+                  <details class="summary-details">
+                    <summary class="summary-toggle">💬 View Summary</summary>
+                    <div class="summary-content">
+                      ${note.summary_text}
+                    </div>
+                  </details>
+                </div>
+              ` : ''}
+              
+              <div class="audio-section">
+                <div class="audio-container">
+                  <div class="audio-label">🎧 Playback</div>
+                  <div class="custom-audio-player" data-note-id="${note.id}">
+                    <div class="audio-controls">
+                      <button class="play-btn" onclick="togglePlay(${note.id})">
+                        <span class="play-icon">▶</span>
+                        <span class="pause-icon" style="display: none;">⏸</span>
+                      </button>
+                      <div class="audio-info">
+                        <div class="progress-container">
+                          <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                            <div class="progress-handle"></div>
+                          </div>
+                          <div class="waveform">
+                            <div class="waveform-bar"></div>
+                            <div class="waveform-bar"></div>
+                            <div class="waveform-bar"></div>
+                            <div class="waveform-bar"></div>
+                            <div class="waveform-bar"></div>
+                          </div>
+                        </div>
+                        <div class="time-display">
+                          <span class="current-time">0:00</span>
+                          <span class="duration">0:00</span>
+                        </div>
+                      </div>
+                      <div class="speed-controls">
+                        <button class="speed-btn" onclick="toggleSpeed(${note.id})">1x</button>
+                      </div>
+                    </div>
+                    <audio class="hidden-audio" preload="metadata" data-note-id="${note.id}">
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="tags-section">
+                <div class="tags-container" id="tags-${note.id}">
+                  <span class="tag" onclick="removeTag(${note.id}, this)">#${note.category_name || 'General'} ✕</span>
+                  <span class="tag" onclick="removeTag(${note.id}, this)">#Lecture ✕</span>
+                  <span class="tag add" onclick="addTag(${note.id})">+ Add Tag</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+        
+        // Initialize audio players after rendering
+        setTimeout(() => initializeAudioPlayers(), 100);
+      }
+
+      function updateArchiveStats(notes) {
+        const totalNotes = notes.length;
+        const totalWords = notes.reduce((sum, note) => {
+          return sum + (note.transcription_text ? note.transcription_text.split(' ').length : 0);
+        }, 0);
+        
+        const avgSummary = notes.length > 0 ? 
+          Math.round((notes.reduce((sum, note) => {
+            if (note.transcription_text && note.summary_text) {
+              const transcriptWords = note.transcription_text.split(' ').length;
+              const summaryWords = note.summary_text.split(' ').length;
+              return sum + (summaryWords / transcriptWords * 100);
+            }
+            return sum;
+          }, 0) / notes.length)) : 0;
+
+        document.getElementById('totalNotes').textContent = totalNotes;
+        document.getElementById('totalWords').textContent = totalWords.toLocaleString();
+        document.getElementById('avgSummary').textContent = `${avgSummary}%`;
+      }
+
+      function searchArchive() {
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        filterArchive(); // This will now include search functionality
+      }
+
+      function filterArchive() {
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        const sortFilter = document.getElementById('sortFilter').value;
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        
+        let filteredNotes = [...archiveData];
+        
+        // Apply search filter
+        if (searchTerm) {
+          filteredNotes = filteredNotes.filter(note => 
+            note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (note.transcription_text && note.transcription_text.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (note.summary_text && note.summary_text.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (note.category_name && note.category_name.toLowerCase().includes(searchTerm.toLowerCase()))
+          );
+        }
+        
+        // Apply category filter
+        if (categoryFilter) {
+          filteredNotes = filteredNotes.filter(note => 
+            note.category_name && note.category_name.toLowerCase() === categoryFilter.toLowerCase()
+          );
+        }
+        
+        // Apply sort filter
+        switch (sortFilter) {
+          case 'oldest':
+            filteredNotes.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            break;
+          case 'title':
+            filteredNotes.sort((a, b) => a.title.localeCompare(b.title));
+            break;
+          case 'size':
+            filteredNotes.sort((a, b) => (b.file_size || 0) - (a.file_size || 0));
+            break;
+          default: // newest
+            filteredNotes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        }
+        
+        displayArchive(filteredNotes);
+      }
+
+      function viewArchiveItem(noteId) {
+        // For now, just show a simple view
+        // In a full implementation, this would open a detailed view modal
+        alert('Archive item viewing feature coming soon!');
+      }
+
+      function transferToThinkSpace(noteId) {
+        // Transfer the note to ThinkSpace for Socratic discussion
+        const note = archiveData.find(n => n.id === noteId);
+        if (note) {
+          // Switch to ThinkSpace tab
+          showTab('thinkspace');
+          document.querySelector('.nav-tab[onclick*="thinkspace"]').click();
+          
+          // Initialize Socratic session context
+          isContextual = true;
+          sessionContext = {
+            title: note.title,
+            transcript: note.transcription_text,
+            summary: note.summary_text,
+            date: note.created_at,
+            tags: note.category_name
+          };
+          
+          // Reset session state
+          questionTier = 1;
+          sessionHistory = [];
+          currentStrategy = 'elenchus';
+          
+          // Display the transcript
+          displayTranscriptInThinkSpace(note);
+          
+          // Set current note ID for context
+          currentNoteId = noteId;
+          
+          showSuccess('Note transferred to ThinkSpace!');
+        }
+      }
+
+      function initializeThinkSpace() {
+        // Initialize ThinkSpace for general inquiry mode
+        isContextual = false;
+        sessionContext = null;
+        questionTier = 1;
+        sessionHistory = [];
+        currentStrategy = 'elenchus';
+        
+        // Hide transcript display
+        const transcriptDisplay = document.getElementById('transcriptDisplay');
+        transcriptDisplay.style.display = 'none';
+        
+        // Clear chat messages and add Sage's general welcome message
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = '';
+        
+        const welcomeMessage = `
+          <strong>🧠 Socrates:</strong> Welcome to ThinkSpace! I'm your philosophical guide. I'm here to help you explore ideas through thoughtful questioning.
+          <br><br>
+          You can either:
+          <br>
+          • Ask me philosophical questions for general inquiry
+          <br>
+          • Go to the Archive and select a note to discuss specific content
+          <br><br>
+          <em>What would you like to explore today?</em>
+        `;
+        
+        addMessageToChat('system', welcomeMessage);
+        hideSessionActions();
+      }
+
+      function displayTranscriptInThinkSpace(note) {
+        // Show transcript display area
+        const transcriptDisplay = document.getElementById('transcriptDisplay');
+        transcriptDisplay.style.display = 'block';
+        
+        // Populate transcript header
+        document.getElementById('transcriptFilename').textContent = note.title;
+        
+        // Format and display date
+        const createdDate = new Date(note.created_at);
+        const dateStr = createdDate.toLocaleDateString();
+        const timeStr = createdDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        document.getElementById('transcriptDate').innerHTML = `<span>📅</span> ${dateStr}`;
+        document.getElementById('transcriptTime').textContent = `Added ${getRelativeTime(createdDate)}`;
+        
+        // Populate badges
+        const badgesContainer = document.getElementById('transcriptBadges');
+        badgesContainer.innerHTML = '';
+        
+        // Add category tag
+        if (note.category_name) {
+          const tagBadge = document.createElement('div');
+          tagBadge.className = 'transcript-badge tag';
+          tagBadge.innerHTML = `<span>🏷️</span> #${note.category_name}`;
+          badgesContainer.appendChild(tagBadge);
+        }
+        
+        // Add word count
+        if (note.transcription_text) {
+          const wordCount = note.transcription_text.split(' ').length;
+          const wordCountBadge = document.createElement('div');
+          wordCountBadge.className = 'transcript-badge word-count';
+          wordCountBadge.innerHTML = `<span>📊</span> ${wordCount} words`;
+          badgesContainer.appendChild(wordCountBadge);
+        }
+        
+        // Add time added badge
+        const timeBadge = document.createElement('div');
+        timeBadge.className = 'transcript-badge time-added';
+        timeBadge.innerHTML = `<span>⏰</span> ${getRelativeTime(createdDate)}`;
+        badgesContainer.appendChild(timeBadge);
+        
+        // Populate transcript content
+        document.getElementById('transcriptContent').textContent = note.transcription_text || 'No transcript available';
+        
+        // Populate summary content if available
+        const summarySection = document.getElementById('summarySection');
+        const summaryContent = document.getElementById('summaryContent');
+        const summarizeBtn = document.getElementById('summarizeBtn');
+        
+        if (note.summary_text) {
+          summarySection.style.display = 'block';
+          summaryContent.textContent = note.summary_text;
+          // Hide the summarize button since summary already exists
+          summarizeBtn.style.display = 'none';
+        } else {
+          summarySection.style.display = 'none';
+          // Show the summarize button since no summary exists
+          summarizeBtn.style.display = 'block';
+        }
+        
+        // Clear chat messages and add Sage's welcome message
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = '';
+        
+        // Add Socrates's Socratic welcome message for contextual mode
+        const welcomeMessage = `
+          <strong>🧠 Socrates:</strong> 📄 I've received your transcript <em>'${note.title}'</em>. What would you like to examine together from this text?
+          <br><br>
+          I'm here to guide you through Socratic inquiry - not to give you answers, but to help you discover them through thoughtful questioning.
+          <br><br>
+          <em>What aspect of this material would you like to explore first?</em>
+        `;
+        
+        addMessageToChat('system', welcomeMessage);
+        
+        // Hide session actions initially
+        hideSessionActions();
+      }
+
+      function getRelativeTime(date) {
+        const now = new Date();
+        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+        
+        if (diffInMinutes < 1) return 'just now';
+        if (diffInMinutes < 60) return `${diffInMinutes} min${diffInMinutes === 1 ? '' : 's'} ago`;
+        
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+        
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays < 7) return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+        
+        const diffInWeeks = Math.floor(diffInDays / 7);
+        if (diffInWeeks < 4) return `${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'} ago`;
+        
+        const diffInMonths = Math.floor(diffInDays / 30);
+        if (diffInMonths < 12) return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
+        
+        const diffInYears = Math.floor(diffInDays / 365);
+        return `${diffInYears} year${diffInYears === 1 ? '' : 's'} ago`;
+      }
+
+      function toggleTranscriptDisplay() {
+        const transcriptContent = document.getElementById('transcriptContent');
+        transcriptContent.classList.toggle('expanded');
+      }
+
+      function toggleSummaryDisplay() {
+        const summaryContent = document.getElementById('summaryContent');
+        summaryContent.classList.toggle('expanded');
+      }
+
+      function summarizeTranscript() {
+        // This function would generate a summary of the current transcript
+        // For now, we'll show a placeholder message
+        showSuccess('Summary generation feature coming soon!');
+      }
+
+      function startTranscriptDialogue() {
+        // This function would start a focused dialogue on the transcript
+        // For now, we'll add a message to the chat
+        addMessageToChat('system', '🧠 Socrates: Great! I\'m ready to explore this transcript with you. What aspect would you like to discuss first?');
+      }
+
+      async function deleteArchiveItem(noteId) {
+        if (!confirm('Are you sure you want to delete this note from your archive?')) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE}/notes/${noteId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          if (response.ok) {
+            showSuccess('Note deleted from archive');
+            loadArchive(); // Refresh the archive
+            loadStorageInfo(); // Refresh storage info
+          } else {
+            const data = await response.json();
+            showError('Failed to delete note: ' + data.error);
+          }
+        } catch (error) {
+          console.error('Delete archive item error:', error);
+          showError('Failed to delete note');
+        }
+      }
+
+      // ThinkSpace Voice Features
+      let synthesis = window.speechSynthesis;
+      let currentUtterance = null;
+
+      function stopAudio() {
+        if (synthesis && synthesis.speaking) {
+          synthesis.cancel();
+        }
+      }
+
+      function speakText(text) {
+        if (outputMode === 'voice' && synthesis) {
+          stopAudio();
+          currentUtterance = new SpeechSynthesisUtterance(text);
+          
+          // Set Socrates's warm, soft-feminine voice characteristics
+          currentUtterance.rate = 0.8; // Slower for thoughtful, calming delivery
+          currentUtterance.pitch = 1.15; // Higher pitch for warm feminine voice
+          currentUtterance.volume = 0.85; // Lower volume for gentle, safe delivery
+          
+          // Get available voices and select the ideal warm, soft-feminine voice for Socrates
+          const voices = synthesis.getVoices();
+          
+          // Priority order for warm, soft-feminine voices (safe for high school students)
+          const idealVoices = [
+            'Google en-US-Wavenet-F', // Ideal prototype voice
+            'Google UK English Female', // Warm British female
+            'Samantha', // Apple's warm female voice
+            'Victoria', // Another warm female option
+            'Microsoft Eva', // Soft Microsoft female
+            'Microsoft Zira', // Alternative Microsoft female
+            'Female' // Generic female fallback
+          ];
+          
+          // Find the best available voice
+          let selectedVoice = null;
+          for (const voiceName of idealVoices) {
+            selectedVoice = voices.find(voice => 
+              voice.name.includes(voiceName) || 
+              (voiceName === 'Female' && voice.name.toLowerCase().includes('female'))
+            );
+            if (selectedVoice) break;
+          }
+          
+          if (selectedVoice) {
+            currentUtterance.voice = selectedVoice;
+            console.log('Socrates voice selected:', selectedVoice.name);
+          } else {
+            console.log('No ideal female voice found, using default');
+          }
+          
+          synthesis.speak(currentUtterance);
+        }
+      }
+
+      // Chat Functions
+      function handleChatKeyPress(event) {
+        if (event.key === 'Enter') {
+          sendMessage();
+        }
+      }
+
+      async function sendMessage() {
+        const chatInput = document.getElementById('chatInput');
+        const message = chatInput.value.trim();
+        
+        if (!message) return;
+
+        // Add user message to chat
+        addMessageToChat('user', message);
+        chatInput.value = '';
+
+        // Show typing indicator
+        const sendBtn = document.getElementById('sendBtn');
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending...';
+
+        // Send to ThinkSpace
+        await sendThinkSpaceMessage(message);
+
+        // Reset button
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send';
+      }
+
+      // ThinkSpace Mode Variables
+      let inputMode = 'text'; // 'text' or 'voice'
+      let outputMode = 'voice'; // 'text' or 'voice'
+      let voiceOutputActive = true;
+      let currentAudioUrl = null;
+
+      // Mode Toggle Functions
+      function toggleInputMode(mode) {
+        inputMode = mode;
+        
+        // Update toggle buttons
+        document.getElementById('voiceInputToggle').classList.toggle('active', mode === 'voice');
+        document.getElementById('textInputToggle').classList.toggle('active', mode === 'text');
+        
+        // Update input field and mic button
+        const chatInput = document.getElementById('chatInput');
+        const micBtn = document.getElementById('micBtn');
+        const inputWrapper = document.querySelector('.input-wrapper');
+        
+        if (mode === 'voice') {
+          // Hide text input, show mic button
+          chatInput.style.display = 'none';
+          micBtn.style.display = 'flex';
+          micBtn.style.position = 'absolute';
+          micBtn.style.right = '8px';
+          micBtn.style.top = '50%';
+          micBtn.style.transform = 'translateY(-50%)';
+          micBtn.style.width = '40px';
+          micBtn.style.height = '40px';
+          micBtn.style.borderRadius = '50%';
+          micBtn.style.backgroundColor = '#007bff';
+          micBtn.style.color = 'white';
+          micBtn.style.border = 'none';
+          micBtn.style.cursor = 'pointer';
+          micBtn.style.alignItems = 'center';
+          micBtn.style.justifyContent = 'center';
+          
+          // Update placeholder for voice mode
+          chatInput.placeholder = 'Voice input active - Click mic to record';
+        } else {
+          // Show text input, hide mic button
+          chatInput.style.display = 'block';
+          micBtn.style.display = 'none';
+          
+          // Reset placeholder for text mode
+          chatInput.placeholder = 'Ask a question or share your thoughts...';
+        }
+      }
+
+      function toggleOutputMode(mode) {
+        outputMode = mode;
+        
+        // Update toggle buttons
+        document.getElementById('voiceOutputToggle').classList.toggle('active', mode === 'voice');
+        document.getElementById('textOutputToggle').classList.toggle('active', mode === 'text');
+        
+        // Update voice output state
+        voiceOutputActive = (mode === 'voice');
+        
+        console.log('Output mode changed to:', mode, 'Voice output active:', voiceOutputActive);
+      }
+
+      // Voice Recording Functions
+      function toggleVoiceRecording() {
+        if (isRecording) {
+          stopVoiceRecording();
+        } else {
+          startVoiceRecording();
+        }
+      }
+
+      function startVoiceRecording() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showError('Voice recording is not supported in your browser');
+          return;
+        }
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            recordingStartTime = Date.now();
+
+            mediaRecorder.ondataavailable = (event) => {
+              audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+              processVoiceInput(audioBlob);
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            
+            // Update UI
+            const micBtn = document.getElementById('micBtn');
+            micBtn.classList.add('recording');
+            micBtn.innerHTML = '<span class="mic-icon">⏹️</span>';
+            
+            showSuccess('Recording started... Tap the button to stop and send');
+          })
+          .catch(error => {
+            console.error('Error accessing microphone:', error);
+            showError('Unable to access microphone. Please check permissions.');
+          });
+      }
+
+      function stopVoiceRecording() {
+        if (mediaRecorder && isRecording) {
+          mediaRecorder.stop();
+          mediaRecorder.stream.getTracks().forEach(track => track.stop());
+          isRecording = false;
+          
+          // Update UI
+          const micBtn = document.getElementById('micBtn');
+          micBtn.classList.remove('recording');
+          micBtn.innerHTML = '<span class="mic-icon">🎤</span>';
+        }
+      }
+
+      async function processVoiceInput(audioBlob) {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'voice-input.wav');
+
+        try {
+          const response = await fetch(`${API_BASE}/transcribe`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            },
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.transcription) {
+            // Add transcribed message to chat
+            addMessageToChat('user', data.transcription);
+            
+            // Send to ThinkSpace
+            await sendThinkSpaceMessage(data.transcription);
+          } else {
+            showError('Failed to transcribe voice input');
+          }
+        } catch (error) {
+          console.error('Voice processing error:', error);
+          showError('Failed to process voice input');
+        }
+      }
+
+      async function sendThinkSpaceMessage(message) {
+        // Show thinking indicator if voice output
+        if (outputMode === 'voice') {
+          showVoiceThinking();
+        }
+
+        try {
+          // Update session history
+          sessionHistory.push({
+            message: message,
+            timestamp: new Date().toISOString(),
+            tier: questionTier,
+            strategy: currentStrategy
+          });
+
+          // Select Socratic strategy based on user input
+          currentStrategy = selectSocraticStrategy(message, sessionHistory);
+          
+          // Get next question tier
+          questionTier = getNextQuestionTier(sessionHistory);
+
+          // Prepare context for API
+          let context = 'socratic_learning';
+          let transcriptContext = '';
+          let socraticInstructions = '';
+          
+          if (isContextual && sessionContext) {
+            context = 'transcript_analysis';
+            let contextText = `Context: The user is discussing a transcript titled "${sessionContext.title}" with the following content: ${sessionContext.transcript.substring(0, 1000)}...`;
+            
+            // Add summary to context if available
+            if (sessionContext.summary) {
+              contextText += `\n\nSummary: ${sessionContext.summary}`;
+            }
+            
+            transcriptContext = contextText;
+            
+            // Add Socratic instructions for contextual mode
+            socraticInstructions = `
+              IMPORTANT: You are Socrates, a Socratic teacher. You must:
+              1. NEVER give direct answers - only ask thoughtful questions
+              2. Use Socratic strategies: elenchus (refutation), aporia (confusion), maieutics (midwifery), dialectical (analogies), synthesis (integration)
+              3. Current strategy: ${currentStrategy}
+              4. Question tier: ${questionTier}
+              5. Restrict all questions to the uploaded transcript content
+              6. Be calm, curious, and never dogmatic
+              7. Help the user discover contradictions and deeper understanding through questioning
+            `;
+          } else {
+            // General inquiry mode
+            socraticInstructions = `
+              IMPORTANT: You are Socrates, a Socratic teacher. You must:
+              1. NEVER give direct answers - only ask thoughtful questions
+              2. Use Socratic strategies: elenchus (refutation), aporia (confusion), maieutics (midwifery), dialectical (analogies), synthesis (integration)
+              3. Current strategy: ${currentStrategy}
+              4. Question tier: ${questionTier}
+              5. Engage in open philosophical inquiry
+              6. Be calm, curious, and never dogmatic
+              7. Help the user discover contradictions and deeper understanding through questioning
+            `;
+          }
+
+          const response = await fetch(`${API_BASE}/thinkspace/chat`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+              message: message,
+              context: context,
+              transcriptContext: transcriptContext,
+              socraticInstructions: socraticInstructions,
+              currentStrategy: currentStrategy,
+              questionTier: questionTier,
+              isContextual: isContextual
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            // Hide thinking indicator
+            hideVoiceThinking();
+            
+            // Add AI response to chat
+            addMessageToChat('system', data.response, outputMode === 'voice');
+            
+            // Speak the response if voice output is enabled
+            if (outputMode === 'voice' && voiceOutputActive) {
+              speakText(data.response);
+            }
+            
+            // Show session actions
+            showSessionActions();
+          } else {
+            hideVoiceThinking();
+            addMessageToChat('system', 'I apologize, but I\'m having trouble processing your request right now. Please try again.');
+          }
+        } catch (error) {
+          console.error('ThinkSpace error:', error);
+          hideVoiceThinking();
+          addMessageToChat('system', 'I apologize, but I\'m having trouble connecting right now. Please check your connection and try again.');
+        }
+      }
+
+      function showVoiceThinking() {
+        const thinkingIndicator = document.getElementById('voiceThinking');
+        thinkingIndicator.style.display = 'block';
+      }
+
+      function hideVoiceThinking() {
+        const thinkingIndicator = document.getElementById('voiceThinking');
+        thinkingIndicator.style.display = 'none';
+      }
+
+      function showSessionActions() {
+        const sessionActions = document.getElementById('sessionActions');
+        sessionActions.style.display = 'flex';
+      }
+
+      function hideSessionActions() {
+        const sessionActions = document.getElementById('sessionActions');
+        sessionActions.style.display = 'none';
+      }
+
+      // Session Management Functions
+      function saveToArchive() {
+        const chatMessages = document.getElementById('chatMessages');
+        const messages = Array.from(chatMessages.children).map(msg => {
+          const content = msg.querySelector('.message-content');
+          return {
+            sender: msg.classList.contains('user') ? 'user' : 'system',
+            content: content.textContent || content.innerHTML
+          };
+        });
+
+        const sessionData = {
+          title: `ThinkSpace Session - ${new Date().toLocaleDateString()}`,
+          messages: messages,
+          timestamp: new Date().toISOString(),
+          sourceNote: currentNoteId
+        };
+
+        // Save to localStorage for now (in a real app, this would go to the backend)
+        const sessions = JSON.parse(localStorage.getItem('thinkspace_sessions') || '[]');
+        sessions.push(sessionData);
+        localStorage.setItem('thinkspace_sessions', JSON.stringify(sessions));
+
+        showSuccess('Session saved to archive!');
+      }
+
+      function pinSessionSummary() {
+        const chatMessages = document.getElementById('chatMessages');
+        const messages = Array.from(chatMessages.children)
+          .filter(msg => msg.classList.contains('system'))
+          .map(msg => msg.querySelector('.message-content').textContent)
+          .join('\n\n');
+
+        const summary = {
+          title: `Session Summary - ${new Date().toLocaleDateString()}`,
+          content: messages,
+          timestamp: new Date().toISOString()
+        };
+
+        // Save to localStorage
+        const summaries = JSON.parse(localStorage.getItem('pinned_summaries') || '[]');
+        summaries.push(summary);
+        localStorage.setItem('pinned_summaries', JSON.stringify(summaries));
+
+        showSuccess('Session summary pinned!');
+      }
+
+      function replayLastResponse() {
+        if (currentAudioUrl) {
+          const audio = new Audio(currentAudioUrl);
+          audio.play();
+        }
+      }
+
+      function endSession() {
+        if (sessionHistory.length === 0) {
+          showError('No session to end. Start a conversation first.');
+          return;
+        }
+
+        // Generate session reflection
+        const reflection = generateSessionReflection();
+        
+        // Add reflection to chat
+        addMessageToChat('system', reflection);
+        
+        // Show session actions
+        showSessionActions();
+        
+        // Reset session state
+        isContextual = false;
+        sessionContext = null;
+        questionTier = 1;
+        sessionHistory = [];
+        currentStrategy = 'elenchus';
+        
+        // Hide transcript display
+        const transcriptDisplay = document.getElementById('transcriptDisplay');
+        transcriptDisplay.style.display = 'none';
+        
+        showSuccess('Session ended. Reflection generated.');
+      }
+
+      function generateSessionReflection() {
+        const totalExchanges = sessionHistory.length;
+        const strategiesUsed = [...new Set(sessionHistory.map(h => h.strategy))];
+        const tiersCovered = [...new Set(sessionHistory.map(h => h.tier))];
+        
+        let reflection = `
+          <strong>🧠 Socrates - Session Reflection</strong>
+          <br><br>
+          <strong>Session Summary:</strong>
+          <br>
+          • Total exchanges: ${totalExchanges}
+          <br>
+          • Socratic strategies used: ${strategiesUsed.join(', ')}
+          <br>
+          • Question tiers covered: ${tiersCovered.join(', ')}
+          <br><br>
+        `;
+        
+        if (isContextual && sessionContext) {
+          reflection += `
+            <strong>Context:</strong> ${sessionContext.title}
+            <br><br>
+          `;
+        }
+        
+        reflection += `
+          <strong>Key Questions Explored:</strong>
+          <br>
+          ${sessionHistory.slice(-3).map(h => `• ${h.message.substring(0, 50)}...`).join('<br>')}
+          <br><br>
+          <strong>Follow-up Questions for Future Reflection:</strong>
+          <br>
+          • How has your understanding evolved through this dialogue?
+          <br>
+          • What contradictions or uncertainties did you discover?
+          <br>
+          • How might you apply these insights in other contexts?
+          <br><br>
+          <em>Rate your understanding now (1-5):</em>
+          <div class="rating-buttons">
+            <button onclick="rateUnderstanding(1)" class="rating-btn">1</button>
+            <button onclick="rateUnderstanding(2)" class="rating-btn">2</button>
+            <button onclick="rateUnderstanding(3)" class="rating-btn">3</button>
+            <button onclick="rateUnderstanding(4)" class="rating-btn">4</button>
+            <button onclick="rateUnderstanding(5)" class="rating-btn">5</button>
+          </div>
+        `;
+        
+        return reflection;
+      }
+
+      function rateUnderstanding(rating) {
+        showSuccess(`Thank you! You rated your understanding as ${rating}/5.`);
+        
+        // Store rating in session data
+        const sessionData = {
+          rating: rating,
+          timestamp: new Date().toISOString(),
+          sessionHistory: sessionHistory,
+          context: sessionContext
+        };
+        
+        // Save to localStorage
+        const sessions = JSON.parse(localStorage.getItem('thinkspace_sessions') || '[]');
+        sessions.push(sessionData);
+        localStorage.setItem('thinkspace_sessions', JSON.stringify(sessions));
+      }
+
+      function addMessageToChat(sender, content, isVoiceResponse = false) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        
+        if (sender === 'user') {
+          contentDiv.textContent = content;
+        } else {
+          // Check if content already contains Socrates header to avoid duplication
+          if (content.includes('🧠 Socrates:')) {
+            contentDiv.innerHTML = content;
+          } else {
+            contentDiv.innerHTML = `<strong>🧠 Socrates:</strong> ${content}`;
+          }
+          
+          // Add replay button for voice responses
+          if (isVoiceResponse && outputMode === 'voice') {
+            const replayBtn = document.createElement('button');
+            replayBtn.className = 'replay-btn';
+            replayBtn.onclick = replayLastResponse;
+            replayBtn.innerHTML = '<span class="replay-icon">🔊</span><span>Replay Response</span>';
+            messageDiv.appendChild(replayBtn);
+          }
+        }
+        
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      // New Archive Interactive Functions
+      function toggleKebabMenu(noteId) {
+        const dropdown = document.getElementById(`kebab-${noteId}`);
+        const allDropdowns = document.querySelectorAll('.kebab-dropdown');
+        
+        // Close all other dropdowns
+        allDropdowns.forEach(d => {
+          if (d.id !== `kebab-${noteId}`) {
+            d.classList.remove('show');
+          }
+        });
+        
+        dropdown.classList.toggle('show');
+      }
+
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', function(event) {
+        if (!event.target.closest('.kebab-menu')) {
+          document.querySelectorAll('.kebab-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('show');
+          });
+        }
+      });
+
+      function toggleTranscript(noteId) {
+        const transcriptContent = document.getElementById(`transcript-${noteId}`);
+        
+        if (transcriptContent.classList.contains('expanded')) {
+          transcriptContent.classList.remove('expanded');
+        } else {
+          transcriptContent.classList.add('expanded');
+        }
+      }
+
+
+
+      async function editNoteTitle(noteId, currentTitle) {
+        const titleElement = document.querySelector(`[data-note-id="${noteId}"] .title-text`);
+        const editIcon = document.querySelector(`[data-note-id="${noteId}"] .edit-icon`);
+        
+        // Create input field
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentTitle;
+        input.className = 'file-title-input';
+        
+        // Replace title with input
+        titleElement.style.display = 'none';
+        editIcon.style.display = 'none';
+        titleElement.parentNode.insertBefore(input, titleElement);
+        
+        input.focus();
+        input.select();
+        
+        // Handle save on Enter or blur
+        const saveTitle = async () => {
+          const newTitle = input.value.trim();
+          if (newTitle && newTitle !== currentTitle) {
+            try {
+              const response = await fetch(`${API_BASE}/notes/${noteId}`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({ title: newTitle })
+              });
+              
+              if (response.ok) {
+                titleElement.textContent = newTitle;
+                showSuccess('Title updated successfully');
+                // Update archive data
+                const noteIndex = archiveData.findIndex(n => n.id === noteId);
+                if (noteIndex !== -1) {
+                  archiveData[noteIndex].title = newTitle;
+                }
+              } else {
+                showError('Failed to update title');
+              }
+            } catch (error) {
+              console.error('Update title error:', error);
+              showError('Failed to update title');
+            }
+          }
+          
+          // Restore original elements
+          titleElement.style.display = 'inline';
+          editIcon.style.display = 'inline';
+          input.remove();
+        };
+        
+        input.addEventListener('blur', saveTitle);
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            saveTitle();
+          }
+        });
+      }
+
+      function addTag(noteId) {
+        const tagName = prompt('Enter tag name (without #):');
+        if (tagName && tagName.trim()) {
+          const tagsContainer = document.getElementById(`tags-${noteId}`);
+          const newTag = document.createElement('span');
+          newTag.className = 'tag';
+          newTag.textContent = `#${tagName.trim()} ✕`;
+          newTag.onclick = () => removeTag(noteId, newTag);
+          tagsContainer.insertBefore(newTag, tagsContainer.lastElementChild);
+          
+          // Update tag filter options
+          updateTagFilterOptions();
+        }
+      }
+
+      function removeTag(noteId, tagElement) {
+        if (confirm('Remove this tag?')) {
+          tagElement.remove();
+          // Update tag filter options
+          updateTagFilterOptions();
+        }
+      }
+
+      function updateTagFilterOptions() {
+        const tagChips = document.getElementById('tagChips');
+        const allTags = new Set();
+        
+        // Collect all tags from all notes
+        document.querySelectorAll('.tag').forEach(tag => {
+          const tagText = tag.textContent.replace(' ✕', '').replace('+ Add Tag', '');
+          if (tagText && tagText.trim() && !tagText.includes('+ Add Tag')) {
+            allTags.add(tagText.trim());
+          }
+        });
+        
+        // Clear existing chips
+        tagChips.innerHTML = '';
+        
+        // Create tag chips
+        Array.from(allTags).sort().forEach(tag => {
+          const chip = document.createElement('div');
+          chip.className = 'tag-chip';
+          chip.textContent = tag;
+          chip.onclick = () => toggleTagFilter(tag, chip);
+          tagChips.appendChild(chip);
+        });
+        
+        console.log('Tag chips updated:', Array.from(allTags));
+      }
+
+      function toggleTagFilter(tag, chip) {
+        // Toggle active state
+        chip.classList.toggle('active');
+        
+        // Trigger filtering
+        filterArchive();
+      }
+
+      function exportNote(noteId) {
+        const note = archiveData.find(n => n.id === noteId);
+        if (!note) {
+          showError('Note not found');
+          return;
+        }
+        
+        const exportData = {
+          title: note.title,
+          created_at: note.created_at,
+          transcription: note.transcription_text,
+          summary: note.summary_text,
+          category: note.category_name
+        };
+        
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showSuccess('Note exported successfully');
+      }
+
+      // Update filter function to work with tag chips
+      function filterArchive() {
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        const activeTags = Array.from(document.querySelectorAll('.tag-chip.active')).map(chip => chip.textContent);
+        
+        let filteredNotes = [...archiveData];
+        
+        // Apply search filter
+        if (searchTerm) {
+          filteredNotes = filteredNotes.filter(note => 
+            note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (note.transcription_text && note.transcription_text.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (note.summary_text && note.summary_text.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (note.category_name && note.category_name.toLowerCase().includes(searchTerm.toLowerCase()))
+          );
+        }
+        
+        // Apply tag filter (multiple tags can be selected)
+        if (activeTags.length > 0) {
+          filteredNotes = filteredNotes.filter(note => {
+            const noteElement = document.querySelector(`[data-note-id="${note.id}"]`);
+            if (noteElement) {
+              const noteTags = Array.from(noteElement.querySelectorAll('.tag')).map(tag => {
+                const tagText = tag.textContent.replace(' ✕', '').replace('+ Add Tag', '');
+                return tagText;
+              });
+              
+              // Note must have ALL selected tags (AND logic)
+              return activeTags.every(activeTag => noteTags.includes(activeTag));
+            }
+            return false;
+          });
+        }
+        
+        // Sort by newest first (default)
+        filteredNotes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        displayArchive(filteredNotes);
+      }
+
+      function setupAudioAuth(audioElement, noteId) {
+        // Create a blob URL with authentication for audio playback
+        fetch(`${API_BASE}/notes/${noteId}/audio`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          audioElement.src = url;
+          console.log(`Audio loaded for note ${noteId}`);
+          
+          // Set up audio event listeners
+          setupAudioEventListeners(audioElement, noteId);
+        })
+        .catch(error => {
+          console.error('Audio loading error for note', noteId, ':', error);
+          // Show error message on the audio element
+          const player = document.querySelector(`[data-note-id="${noteId}"] .custom-audio-player`);
+          if (player) {
+            player.innerHTML = '<div style="color: #dc3545; text-align: center; padding: 20px;">Audio not available</div>';
+          }
+        });
+      }
+
+      function setupAudioEventListeners(audioElement, noteId) {
+        const player = document.querySelector(`[data-note-id="${noteId}"] .custom-audio-player`);
+        const playBtn = player.querySelector('.play-btn');
+        const progressBar = player.querySelector('.progress-bar');
+        const progressFill = player.querySelector('.progress-fill');
+        const progressHandle = player.querySelector('.progress-handle');
+        const currentTimeSpan = player.querySelector('.current-time');
+        const durationSpan = player.querySelector('.duration');
+        const waveform = player.querySelector('.waveform');
+
+        // Format time helper
+        function formatTime(seconds) {
+          const mins = Math.floor(seconds / 60);
+          const secs = Math.floor(seconds % 60);
+          return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+          const progress = (audioElement.currentTime / audioElement.duration) * 100;
+          progressFill.style.width = `${progress}%`;
+          progressHandle.style.left = `${progress}%`;
+          currentTimeSpan.textContent = formatTime(audioElement.currentTime);
+        }
+
+        // Update duration when metadata is loaded
+        audioElement.addEventListener('loadedmetadata', () => {
+          durationSpan.textContent = formatTime(audioElement.duration);
+        });
+
+        // Update progress during playback
+        audioElement.addEventListener('timeupdate', updateProgress);
+
+        // Handle play/pause
+        audioElement.addEventListener('play', () => {
+          playBtn.classList.add('playing');
+          playBtn.querySelector('.play-icon').style.display = 'none';
+          playBtn.querySelector('.pause-icon').style.display = 'inline';
+          waveform.style.animationPlayState = 'running';
+        });
+
+        audioElement.addEventListener('pause', () => {
+          playBtn.classList.remove('playing');
+          playBtn.querySelector('.play-icon').style.display = 'inline';
+          playBtn.querySelector('.pause-icon').style.display = 'none';
+          waveform.style.animationPlayState = 'paused';
+        });
+
+        // Handle progress bar click
+        progressBar.addEventListener('click', (e) => {
+          const rect = progressBar.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const progress = (clickX / rect.width) * 100;
+          const newTime = (progress / 100) * audioElement.duration;
+          audioElement.currentTime = newTime;
+        });
+
+        // Handle progress bar drag
+        let isDragging = false;
+        progressHandle.addEventListener('mousedown', () => {
+          isDragging = true;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+          if (isDragging) {
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            const progress = (clickX / rect.width) * 100;
+            const newTime = (progress / 100) * audioElement.duration;
+            audioElement.currentTime = newTime;
+          }
+        });
+
+        document.addEventListener('mouseup', () => {
+          isDragging = false;
+        });
+      }
+
+      function initializeAudioPlayers() {
+        // Initialize audio for all audio elements in the archive
+        document.querySelectorAll('.hidden-audio').forEach(audioElement => {
+          const noteId = audioElement.getAttribute('data-note-id');
+          if (noteId) {
+            setupAudioAuth(audioElement, noteId);
+          }
+        });
+      }
+
+      function togglePlay(noteId) {
+        const audioElement = document.querySelector(`[data-note-id="${noteId}"] .hidden-audio`);
+        if (audioElement.paused) {
+          audioElement.play();
+        } else {
+          audioElement.pause();
+        }
+      }
+
+      function toggleSpeed(noteId) {
+        const audioElement = document.querySelector(`[data-note-id="${noteId}"] .hidden-audio`);
+        const speedBtn = document.querySelector(`[data-note-id="${noteId}"] .speed-btn`);
+        const speeds = [1, 1.5, 2];
+        const currentSpeed = audioElement.playbackRate;
+        const currentIndex = speeds.indexOf(currentSpeed);
+        const nextIndex = (currentIndex + 1) % speeds.length;
+        const newSpeed = speeds[nextIndex];
+        
+        audioElement.playbackRate = newSpeed;
+        speedBtn.textContent = `${newSpeed}x`;
+        
+        // Update active state
+        speedBtn.classList.remove('active');
+        if (newSpeed !== 1) {
+          speedBtn.classList.add('active');
+        }
+      }
+    </script>
+  </body>
+</html> 

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Test Audio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .recording {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Create Test Audio File</h1>
+        <p>This will help you create a real audio file to test the ClassNote AI application.</p>
+        
+        <div style="text-align: center;">
+            <button onclick="startRecording()" id="recordBtn">🎤 Start Recording</button>
+            <button onclick="stopRecording()" id="stopBtn" disabled>⏹️ Stop Recording</button>
+            <button onclick="downloadAudio()" id="downloadBtn" disabled>💾 Download Audio</button>
+        </div>
+        
+        <div id="status">Click "Start Recording" to begin...</div>
+        
+        <div style="margin-top: 30px;">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Click "Start Recording" and allow microphone access</li>
+                <li>Speak for at least 5-10 seconds (e.g., "Hello, this is a test recording for the ClassNote AI application. I'm testing the transcription and summarization features.")</li>
+                <li>Click "Stop Recording"</li>
+                <li>Click "Download Audio" to save the file</li>
+                <li>Upload the downloaded file to the ClassNote AI app</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+        let audioUrl;
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    audioUrl = URL.createObjectURL(audioBlob);
+                    updateStatus('Recording completed! Click "Download Audio" to save the file.', 'success');
+                    document.getElementById('downloadBtn').disabled = false;
+                };
+
+                mediaRecorder.start();
+                updateStatus('🎤 Recording... Speak now!', 'recording');
+                document.getElementById('recordBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                
+            } catch (error) {
+                updateStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+            }
+        }
+
+        function downloadAudio() {
+            if (audioBlob) {
+                const a = document.createElement('a');
+                a.href = audioUrl;
+                a.download = 'test-audio.wav';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                updateStatus('✅ Audio file downloaded! Now upload it to the ClassNote AI app.', 'success');
+            }
+        }
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = type;
+        }
+    </script>
+</body>
+</html> 

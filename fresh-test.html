@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fresh Backend Test - No Cache</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .result { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        button { 
+            padding: 12px 24px; 
+            margin: 8px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border-left-color: #28a745;
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border-left-color: #dc3545;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left-color: #ffc107;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .timestamp {
+            color: #6c757d;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Fresh Backend Test - No Cache</h1>
+        <p>This page has no caching and will test the backend directly.</p>
+        
+        <button onclick="testBackend()">🔍 Test Backend Health</button>
+        <button onclick="testTranscribe()">🎤 Test Transcribe</button>
+        <button onclick="testSummarize()">📝 Test Summarize</button>
+        <button onclick="clearResults()">🗑️ Clear Results</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3001';
+        
+        function addResult(title, content, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            
+            div.innerHTML = `
+                <h3>${title}</h3>
+                <pre>${content}</pre>
+                <div class="timestamp">Tested at: ${timestamp}</div>
+            `;
+            results.appendChild(div);
+        }
+        
+        async function testBackend() {
+            try {
+                const timestamp = Date.now();
+                const response = await fetch(`${API_URL}/?t=${timestamp}`, {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
+                const data = await response.json();
+                addResult('Backend Health Check', JSON.stringify(data, null, 2), 'success');
+                
+                if (!data.hasApiKey) {
+                    addResult('✅ Demo Mode Status', 'Backend is running in demo mode - this is correct!', 'success');
+                } else {
+                    addResult('❌ Demo Mode Status', 'Backend is NOT in demo mode - this is the problem!', 'error');
+                }
+                
+            } catch (error) {
+                addResult('Backend Health Check - ERROR', error.message, 'error');
+            }
+        }
+        
+        async function testTranscribe() {
+            try {
+                addResult('🎤 Starting Transcribe Test', 'Creating test audio file and sending to backend...', 'info');
+                
+                // Create a minimal WAV file
+                const audioData = new Uint8Array([
+                    0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+                    0x66, 0x6D, 0x74, 0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
+                    0x44, 0xAC, 0x00, 0x00, 0x88, 0x58, 0x01, 0x00, 0x02, 0x00, 0x10, 0x00,
+                    0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
+                ]);
+                
+                const formData = new FormData();
+                const blob = new Blob([audioData], { type: 'audio/wav' });
+                formData.append('audio', blob, 'test.wav');
+                
+                const timestamp = Date.now();
+                const response = await fetch(`${API_URL}/transcribe?t=${timestamp}`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
+                const data = await response.json();
+                addResult('Transcribe Response', JSON.stringify(data, null, 2), 'success');
+                
+                // Check what text we're getting
+                if (data.text && data.text.includes("Welcome to today's lecture")) {
+                    addResult('✅ SUCCESS: Improved Demo Text', 'Backend is returning the correct improved demo text!', 'success');
+                } else if (data.text && data.text.includes("This is the transcription of your audio file")) {
+                    addResult('❌ OLD TEXT DETECTED', 'Backend is still returning the old demo text. This should not happen!', 'error');
+                } else {
+                    addResult('❓ UNKNOWN TEXT', `Backend returned different text: ${data.text}`, 'warning');
+                }
+                
+            } catch (error) {
+                addResult('Transcribe Test - ERROR', error.message, 'error');
+            }
+        }
+        
+        async function testSummarize() {
+            try {
+                const testText = "This is a test lecture about artificial intelligence. AI is transforming various industries.";
+                
+                const timestamp = Date.now();
+                const response = await fetch(`${API_URL}/summarize?t=${timestamp}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
+                    body: JSON.stringify({ text: testText })
+                });
+                
+                const data = await response.json();
+                addResult('Summarize Response', JSON.stringify(data, null, 2), 'success');
+                
+            } catch (error) {
+                addResult('Summarize Test - ERROR', error.message, 'error');
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // Auto-test on page load
+        window.onload = function() {
+            addResult('🚀 Page Loaded', 'Fresh test page loaded. Ready to test backend.', 'info');
+        };
+    </script>
+</body>
+</html> 

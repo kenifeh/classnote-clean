@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Audio for ClassNote AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 10px;
+            border-radius: 25px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .recording {
+            background-color: #dc3545 !important;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        #status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .recording-status {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .instructions {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .test-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Record Audio for ClassNote AI</h1>
+        
+        <div class="instructions">
+            <h3>📝 Instructions:</h3>
+            <ol>
+                <li>Click "Start Recording" and allow microphone access</li>
+                <li>Speak clearly for at least 10-15 seconds</li>
+                <li>Click "Stop Recording" when done</li>
+                <li>Click "Download Audio" to save the file</li>
+                <li>Upload the downloaded file to the main app</li>
+            </ol>
+        </div>
+        
+        <div style="text-align: center;">
+            <button onclick="startRecording()" id="recordBtn">🎤 Start Recording</button>
+            <button onclick="stopRecording()" id="stopBtn" disabled>⏹️ Stop Recording</button>
+            <button onclick="downloadAudio()" id="downloadBtn" disabled>💾 Download Audio</button>
+        </div>
+        
+        <div id="status">Click "Start Recording" to begin...</div>
+        
+        <div class="test-section">
+            <h3>🧪 Test Your Recording</h3>
+            <p>After downloading your audio file, you can test it here:</p>
+            <input type="file" id="testFile" accept="audio/*" style="margin: 10px 0;" />
+            <br />
+            <button onclick="testAudio()" id="testBtn" disabled>🚀 Test with OpenAI</button>
+            <div id="testResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+        let audioUrl;
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        sampleRate: 44100,
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    } 
+                });
+                
+                // Try to use MP3 format, fallback to WAV
+                let mimeType = 'audio/mp3';
+                if (!MediaRecorder.isTypeSupported('audio/mp3')) {
+                    mimeType = 'audio/wav';
+                }
+                
+                mediaRecorder = new MediaRecorder(stream, { mimeType });
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const mimeType = mediaRecorder.mimeType || 'audio/wav';
+                    audioBlob = new Blob(audioChunks, { type: mimeType });
+                    audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    const fileSize = (audioBlob.size / 1024).toFixed(2);
+                    updateStatus(`✅ Recording completed! File size: ${fileSize} KB. Click "Download Audio" to save the file.`, 'success');
+                    document.getElementById('downloadBtn').disabled = false;
+                };
+
+                mediaRecorder.start();
+                updateStatus('🎤 Recording... Speak now! (Click "Stop Recording" when done)', 'recording-status');
+                document.getElementById('recordBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('recordBtn').classList.add('recording');
+                
+            } catch (error) {
+                updateStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('recordBtn').classList.remove('recording');
+            }
+        }
+
+        function downloadAudio() {
+            if (audioBlob) {
+                const a = document.createElement('a');
+                a.href = audioUrl;
+                const extension = mediaRecorder.mimeType.includes('mp3') ? 'mp3' : 'wav';
+                a.download = `classnote-test-audio.${extension}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                updateStatus('✅ Audio file downloaded! Now upload it to the main ClassNote AI app.', 'success');
+            }
+        }
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = type;
+        }
+
+        // Test function
+        document.getElementById('testFile').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                document.getElementById('testBtn').disabled = false;
+                const fileSize = (file.size / 1024).toFixed(2);
+                document.getElementById('testResult').innerHTML = `<p>Selected: ${file.name} (${fileSize} KB)</p>`;
+            }
+        });
+
+        async function testAudio() {
+            const fileInput = document.getElementById('testFile');
+            const testResult = document.getElementById('testResult');
+            const testBtn = document.getElementById('testBtn');
+            
+            if (!fileInput.files[0]) {
+                testResult.innerHTML = '<p style="color: red;">Please select a file first.</p>';
+                return;
+            }
+
+            testBtn.disabled = true;
+            testBtn.textContent = 'Testing...';
+            testResult.innerHTML = '<p>📤 Uploading to OpenAI Whisper...</p>';
+
+            const formData = new FormData();
+            formData.append('audio', fileInput.files[0]);
+
+            try {
+                const response = await fetch('http://localhost:3001/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (data.text && data.text.includes("This is the transcription of your audio file")) {
+                    testResult.innerHTML = '<p style="color: red;">❌ Still getting demo response. File might be too short or not a real audio file.</p>';
+                } else if (data.text && data.text.includes("Welcome to today's lecture")) {
+                    testResult.innerHTML = '<p style="color: red;">❌ Getting demo response. API key might not be working.</p>';
+                } else if (data.text) {
+                    testResult.innerHTML = `<p style="color: green;">✅ Real transcription received!</p><p><strong>Transcription:</strong> ${data.text}</p>`;
+                } else {
+                    testResult.innerHTML = '<p style="color: red;">❌ No transcription received.</p>';
+                }
+                
+            } catch (error) {
+                testResult.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = '🚀 Test with OpenAI';
+            }
+        }
+    </script>
+</body>
+</html> 

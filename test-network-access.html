@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>ClassNote AI Network Test</h1>
+    
+    <div class="test">
+        <h3>Backend Connection Test</h3>
+        <p>Click the button below to test if your device can reach the backend server:</p>
+        <button onclick="testBackend()">Test Backend Connection</button>
+        <div id="backend-result"></div>
+    </div>
+
+    <div class="test">
+        <h3>Manual Test</h3>
+        <p>Or try opening this URL in your browser: <a href="http://192.168.1.154:3001" target="_blank">http://192.168.1.154:3001</a></p>
+    </div>
+
+    <script>
+        async function testBackend() {
+            const resultDiv = document.getElementById('backend-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://192.168.1.154:3001');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ SUCCESS! Backend is accessible<br>
+                        Status: ${response.status}<br>
+                        Message: ${data.message}<br>
+                        API Key: ${data.hasApiKey ? '✅ Available' : '❌ Missing'}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ FAILED! Cannot reach backend<br>
+                        Error: ${error.message}<br><br>
+                        Possible solutions:<br>
+                        1. Make sure your phone and computer are on the same WiFi network<br>
+                        2. Check if Windows Firewall is blocking the connection<br>
+                        3. Try disabling Windows Firewall temporarily for testing
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend Test</title>
+</head>
+<body>
+    <h1>Backend API Test</h1>
+    <button onclick="testTranscribe()">Test Transcription</button>
+    <button onclick="testSummarize()">Test Summarization</button>
+    <div id="result"></div>
+
+    <script>
+        async function testTranscribe() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing transcription...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/transcribe', {
+                    method: 'POST',
+                    body: new FormData()
+                });
+                
+                const data = await response.json();
+                result.innerHTML = `<h3>Transcription Response:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<h3>Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+
+        async function testSummarize() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing summarization...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: 'Test text for summarization' })
+                });
+                
+                const data = await response.json();
+                result.innerHTML = `<h3>Summarization Response:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<h3>Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+</head>
+<body>
+    <h1>Frontend-Backend Connection Test</h1>
+    <input type="file" id="audioFile" accept="audio/*" />
+    <button onclick="testUpload()">Test Upload</button>
+    <div id="result"></div>
+
+    <script>
+        async function testUpload() {
+            const result = document.getElementById('result');
+            const fileInput = document.getElementById('audioFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                result.innerHTML = 'Please select a file first';
+                return;
+            }
+
+            result.innerHTML = 'Testing upload...';
+
+            const formData = new FormData();
+            formData.append('audio', file);
+
+            try {
+                console.log('Sending request to backend...');
+                const response = await fetch('http://localhost:3001/transcribe', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                result.innerHTML = `
+                    <h3>Backend Response:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p><strong>Text:</strong> ${data.text}</p>
+                `;
+
+            } catch (error) {
+                console.error('Error:', error);
+                result.innerHTML = `<h3>Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html> 
